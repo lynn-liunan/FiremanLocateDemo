@@ -19,7 +19,7 @@ public class TimeACK implements IPackage {
 
     public TimeACK(byte[] ackBytes) {
         byte[] mModuleIDBytes = new byte[2];
-        byte[] mTimeStampBytes = new byte[2];
+        byte[] mTimeStampBytes = new byte[4];
         byte[] mTimeMillisecondsBytes = new byte[2];
         System.arraycopy(ackBytes, 2, mModuleIDBytes, 0, 2);
         System.arraycopy(ackBytes, 4, mTimeStampBytes, 0, 4);
