@@ -20,17 +20,14 @@ public class Report implements IPackage {
     public Report(byte[] reportBytes) {
         if (reportBytes.length <= 2)
             return;
+        isReportValid = true;
         mReportsNumber = reportBytes[1];
-        if ((reportBytes.length - 2) % BLOCK_LENGTH == 0 && (reportBytes.length - 2) /
-                BLOCK_LENGTH == mReportsNumber) {
-            mDataBlocks = new DataBlock[mReportsNumber];
-            isReportValid = true;
-            for (int i = 0; i < mReportsNumber; i++) {
-                byte[] block = new byte[BLOCK_LENGTH];
-                System.arraycopy(reportBytes, i * BLOCK_LENGTH + 2, block, 0, 16);
-                DataBlock dataBlock = new DataBlock(block);
-                mDataBlocks[i] = dataBlock;
-            }
+        mDataBlocks = new DataBlock[mReportsNumber];
+        for (int i = 0; i < mReportsNumber; i++) {
+            byte[] block = new byte[BLOCK_LENGTH];
+            System.arraycopy(reportBytes, i * BLOCK_LENGTH + 2, block, 0, 16);
+            DataBlock dataBlock = new DataBlock(block);
+            mDataBlocks[i] = dataBlock;
         }
     }
 
@@ -68,11 +65,13 @@ public class Report implements IPackage {
 
     @Override
     public String getPrintableString() {
-        String printStr = "Reports: \n";
+        String printStr = "\nReports: \n";
         printStr += "Type: " + mType + ", ";
         printStr += "ReportsNumber: " + mReportsNumber + "\n";
-        for (int i = 0; i < mReportsNumber; i++) {
-            printStr += mDataBlocks[i].getPrintableString();
+        if (isReportValid) {
+            for (int i = 0; i < mReportsNumber; i++) {
+                printStr += mDataBlocks[i].getPrintableString();
+            }
         }
         return printStr;
     }

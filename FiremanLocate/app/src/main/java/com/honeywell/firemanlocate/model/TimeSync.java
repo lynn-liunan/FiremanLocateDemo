@@ -80,7 +80,7 @@ public class TimeSync implements IPackage {
 
     @Override
     public String getPrintableString() {
-        String printStr = "Time Sync: \n";
+        String printStr = "\nTime Sync: \n";
         printStr += "Type: " + mType + ", ";
         printStr += "Reserved: " + mReserved + ", ";
         printStr += "TimeDiffer: " + mTimeDiffer + ", ";

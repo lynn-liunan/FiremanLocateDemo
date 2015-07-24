@@ -49,10 +49,12 @@ public class UDPServer implements Runnable {
             while (mLife) {
                 try {
                     dSocket.receive(dPacket);
-                    Intent intent = new Intent();
-                    intent.putExtra(UDP_MSG_RECEIVED, dPacket.getData());
-                    intent.setAction(ShowActivity.PackageGotReceiver.MSG_RECEIVED_ACTION);
-                    mContext.getApplicationContext().sendBroadcast(intent);
+                    if (dPacket.getData() != null && dPacket.getData().length > 0) {
+                        Intent intent = new Intent();
+                        intent.putExtra(UDP_MSG_RECEIVED, dPacket.getData());
+                        intent.setAction(ShowActivity.PackageGotReceiver.MSG_RECEIVED_ACTION);
+                        mContext.getApplicationContext().sendBroadcast(intent);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

@@ -72,7 +72,7 @@ public class TimeACK implements IPackage {
 
     @Override
     public String getPrintableString() {
-        String printStr = "ACK: \n";
+        String printStr = "\nACK: \n";
         printStr += "Type: " + mType + ", ";
         printStr += "Reserved: " + mReserved + ", ";
         printStr += "ModuleID: " + mModuleID + ", ";
