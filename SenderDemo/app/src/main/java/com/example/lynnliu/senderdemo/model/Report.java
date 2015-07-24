@@ -1,6 +1,6 @@
-package com.honeywell.firemanlocate.model;
+package com.example.lynnliu.senderdemo.model;
 
-import com.honeywell.firemanlocate.util.ByteUtil;
+import com.example.lynnliu.senderdemo.util.ByteUtil;
 
 /**
  * Created by lynnliu on 7/8/15.

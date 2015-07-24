@@ -1,6 +1,6 @@
-package com.honeywell.firemanlocate.model;
+package com.example.lynnliu.senderdemo.model;
 
-import com.honeywell.firemanlocate.util.TimeUtil;
+import com.example.lynnliu.senderdemo.util.TimeUtil;
 
 /**
  * Created by lynnliu on 7/8/15.

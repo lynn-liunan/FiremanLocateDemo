@@ -1,33 +1,33 @@
-package com.honeywell.firemanlocate.model;
+package com.example.lynnliu.senderdemo.model;
 
-import com.honeywell.firemanlocate.util.TimeUtil;
+import com.example.lynnliu.senderdemo.util.ByteUtil;
 
 /**
  * Created by lynnliu on 7/8/15.
  */
-public class TimeSync implements IPackage {
+public class TimeACK implements IPackage {
 
-    private byte mType = (byte) (DataType.TIME_SYNC.ordinal() + 1);
+    private byte mType = (byte) (DataType.TIME_ACK.ordinal() + 1);
 
     private byte mReserved = 0;
 
-    private short mTimeDiffer = 0;
+    private short mModuleID = 0;
 
     private int mTimeStamp = 0;
 
     private short mTimeMilliseconds = 0;
 
-    private Object[] mDataArray = new Object[5];
-
-    public static final int DATA_LENGTH = 10;
-
-    public TimeSync() {
-        mDataArray[0] = mType;
-        mDataArray[1] = mReserved;
-        mDataArray[2] = mTimeDiffer;
-        Object[] timeDiffer = TimeUtil.getTimestamp();
-        mDataArray[3] = mTimeStamp = (int) timeDiffer[0];
-        mDataArray[4] = mTimeMilliseconds = (short) timeDiffer[1];
+    public TimeACK(byte[] ackBytes) {
+        byte[] mModuleIDBytes = new byte[2];
+        byte[] mTimeStampBytes = new byte[4];
+        byte[] mTimeMillisecondsBytes = new byte[2];
+        System.arraycopy(ackBytes, 2, mModuleIDBytes, 0, 2);
+        System.arraycopy(ackBytes, 4, mTimeStampBytes, 0, 4);
+        System.arraycopy(ackBytes, 8, mTimeMillisecondsBytes, 0, 2);
+        setReserved(ackBytes[1]);
+        setModuleID(ByteUtil.bytesToShort(mModuleIDBytes));
+        setTimeStamp(ByteUtil.bytesToInt(mTimeStampBytes));
+        setTimeMilliseconds(ByteUtil.bytesToShort(mTimeMillisecondsBytes));
     }
 
     public byte getType() {
@@ -46,12 +46,12 @@ public class TimeSync implements IPackage {
         mReserved = reserved;
     }
 
-    public short getTimeDiffer() {
-        return mTimeDiffer;
+    public short getModuleID() {
+        return mModuleID;
     }
 
-    public void setTimeDiffer(short timeDiffer) {
-        mTimeDiffer = timeDiffer;
+    public void setModuleID(short moduleID) {
+        mModuleID = moduleID;
     }
 
     public int getTimeStamp() {
@@ -70,20 +70,12 @@ public class TimeSync implements IPackage {
         mTimeMilliseconds = timeMilliseconds;
     }
 
-    public Object[] getDataArray() {
-        return mDataArray;
-    }
-
-    public void setDataArray(Object[] mDataArray) {
-        this.mDataArray = mDataArray;
-    }
-
     @Override
     public String getPrintableString() {
-        String printStr = "\nTime Sync: \n";
+        String printStr = "\nACK: \n";
         printStr += "Type: " + mType + ", ";
         printStr += "Reserved: " + mReserved + ", ";
-        printStr += "TimeDiffer: " + mTimeDiffer + ", ";
+        printStr += "ModuleID: " + mModuleID + ", ";
         printStr += "TimeStamp: " + mTimeStamp + ", ";
         printStr += "TimeMilliseconds: " + mTimeMilliseconds + "\n";
         return printStr;
