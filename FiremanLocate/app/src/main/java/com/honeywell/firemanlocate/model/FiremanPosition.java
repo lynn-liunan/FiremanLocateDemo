@@ -5,10 +5,12 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Created by lynn.liu on 6/18/15.
  */
-public class FiremanPosition {
+public class FiremanPosition implements Cloneable {
 
-    private double mX;
-    private double mY;
+    protected double mX;
+    protected double mY;
+    protected int mIndex;
+    protected double mZ;
 
     public FiremanPosition() {
     }
@@ -16,6 +18,29 @@ public class FiremanPosition {
     public FiremanPosition(double x, double y) {
         mX = x;
         mY = y;
+    }
+
+    public FiremanPosition(double mX, double mY, int mIndex) {
+        this.mIndex = mIndex;
+        this.mY = mY;
+        this.mX = mX;
+    }
+    public FiremanPosition(double mX, double mY, double mZ) {
+        this.mZ = mZ;
+        this.mY = mY;
+        this.mX = mX;
+    }
+    @Override
+    public FiremanPosition clone() {
+        FiremanPosition clone = null;
+        try {
+            clone = (FiremanPosition) super.clone();
+
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e); // won't happen
+        }
+
+        return clone;
     }
 
     public void setX(double mX) {
@@ -32,5 +57,21 @@ public class FiremanPosition {
 
     public double getY() {
         return mY;
+    }
+
+    public int getmIndex() {
+        return mIndex;
+    }
+
+    public void setmIndex(int mIndex) {
+        this.mIndex = mIndex;
+    }
+
+    public double getZ() {
+        return mZ;
+    }
+
+    public void setZ(double mZ) {
+        this.mZ = mZ;
     }
 }

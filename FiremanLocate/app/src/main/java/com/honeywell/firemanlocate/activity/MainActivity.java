@@ -1,15 +1,15 @@
 package com.honeywell.firemanlocate.activity;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import com.honeywell.firemanlocate.R;
 import com.honeywell.firemanlocate.model.FiremanPosition;
-import com.honeywell.firemanlocate.util.SDUtil;
+import com.honeywell.firemanlocate.util.MatrixUtil;
 import com.honeywell.firemanlocate.view.chart.ScatterChart;
 import com.honeywell.firemanlocate.view.chart.ScatterChart2;
 
@@ -17,17 +17,28 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
-public class MainActivity extends Activity {
+import config.Constant;
+
+public class MainActivity extends BaseActivity {
+
 
     private static final String FILE_NAME = "distances.txt";
 
     private double[][] mDistanceArray;
+    private int[] indexResult = null; //save max and third point index
     private ArrayList<FiremanPosition> mFiremanPositionArrayList = new ArrayList<>();
-
+    private ArrayList<FiremanPosition> mLastFiremanPositionArrayList = null;
     private Button mCalculateButton;
     private Button mOldCalculateButton;
     private Button mLoadFileButton;
+    //2 通过上一次坐标点计算旋转坐标原点 返回旋转角度
+    double roataTheta = 0.0;
+    double[] distance = new double[3];
+    double[] rk = new double[3];
+    double[][] pref = new double[3][3]; //3行2列矩阵  前3个坐标点缓存
+    double[][] arix = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,28 +57,34 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 mFiremanPositionArrayList.clear();
-                calculatePointsPosition(false);
+                //  calculatePointsPosition(false);
+                // calculatePointsPosition22();
+                calculatePointsPosition(false); //计算
             }
         });
         mLoadFileButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loadDataFromFile();
+                loadDataFromFile(Constant.demoDistant);
             }
         });
         mOldCalculateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mFiremanPositionArrayList.clear();
-                calculatePointsPosition(true);
+                //  calculatePointsPosition(true);
+                loadDataFromFile(Constant.secondDistan);
+                calculatePointsPosition(false); //计算
             }
         });
     }
 
-    private void loadDataFromFile() {
-        String jsonString = SDUtil.readFileUseBufferReader(FILE_NAME);
+    private void loadDataFromFile(String fileName) {
+        // String jsonString = SDUtil.readFileUseBufferReader(FILE_NAME);
+
         try {
-            JSONArray responseArray = new JSONArray(jsonString);
+            //  JSONArray responseArray = new JSONArray(jsonString);
+            JSONArray responseArray = new JSONArray(fileName);
             mDistanceArray = new double[responseArray.length()][];
             for (int i = 0; i < responseArray.length(); i++) {
                 JSONArray distanceArray = responseArray.getJSONArray(i);
@@ -76,85 +93,97 @@ public class MainActivity extends Activity {
                     mDistanceArray[i][j] = distanceArray.getDouble(j);
                 }
             }
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
+
+    //按钮点击事件计算所有位置
     private void calculatePointsPosition(boolean isOld) {
+
         if (mDistanceArray == null) {
             Toast.makeText(this, R.string.load_file_first, Toast.LENGTH_SHORT).show();
             return;
         }
-        FiremanPosition firemanPosition0 = new FiremanPosition(0, 0);
-        mFiremanPositionArrayList.add(firemanPosition0);
-        FiremanPosition firemanPosition1 = new FiremanPosition(mDistanceArray[0][1], 0);
-        mFiremanPositionArrayList.add(firemanPosition1);
-        FiremanPosition firemanPosition2 = calculate3rdPointFrom2(firemanPosition0, firemanPosition1,
-                mDistanceArray[0][1], mDistanceArray[0][2],
-                mDistanceArray[1][2]);
-        if (firemanPosition2 != null) {
-            mFiremanPositionArrayList.add(firemanPosition2);
-            for (int i = 3; i < mDistanceArray.length; i++) {
-                FiremanPosition firemanPosition_i = calculate4thPointFrom3(firemanPosition0, firemanPosition1,
-                        firemanPosition2, mDistanceArray[0][1], mDistanceArray[0][i], mDistanceArray[1][i],
-                        mDistanceArray[2][i]);
-                mFiremanPositionArrayList.add(firemanPosition_i);
-            }
-            if (isOld) {
-                Intent intent = (new ScatterChart2(mFiremanPositionArrayList)).execute(this);
-                startActivity(intent);
-            } else {
-                Intent intent = (new ScatterChart(mFiremanPositionArrayList)).execute(this);
-                startActivity(intent);
-            }
+
+        arix = new double[mDistanceArray.length][3];
+        indexResult = MatrixUtil.calculateMaxDistant(mDistanceArray); // 1 计算最大三个点下标
+        if (mLastFiremanPositionArrayList != null) {
+            roataTheta = MatrixUtil.calculateRotateAngle(mLastFiremanPositionArrayList, indexResult);      //计算旋转角度 如果有历史数据
+        }
+
+
+        pref = MatrixUtil.calculateThreePoint(mDistanceArray, indexResult, pref, mLastFiremanPositionArrayList, roataTheta); //确定前三个点坐标
+        calculateOthersPointFrom2(); //计算其他点坐标
+        arix = MatrixUtil.transferAxis(arix, roataTheta);  //最后一次旋转，算出旋转坐标
+        //将坐标换为对象
+        for (int i = 0; i < arix.length; i++) {
+            Log.i("arix :", "arix" + i + " x: " + arix[i][0]);
+            Log.i("arix :", "arix" + i + " y: " + arix[i][1]);
+            Log.i("arix :", "arix" + i + " z: " + arix[i][2]);
+            mFiremanPositionArrayList.add(new FiremanPosition(arix[i][0], arix[i][1], arix[i][2]));
+        }
+        mLastFiremanPositionArrayList = saveFiremanPositionHistory(mFiremanPositionArrayList);
+        if (isOld) {
+            Intent intent = (new ScatterChart2(mFiremanPositionArrayList)).execute(this);
+            startActivity(intent);
         } else {
-
+            Intent intent = (new ScatterChart(mFiremanPositionArrayList)).execute(this);
+            startActivity(intent);
         }
     }
 
-    private FiremanPosition calculate4thPointFrom3(FiremanPosition firemanPosition1, FiremanPosition
-            firemanPosition2, FiremanPosition firemanPosition3, double distance12, double round1, double round2,
-                                                   double round3) {
-        FiremanPosition firemanPosition = null;
-        FiremanPosition firemanPosition_a;
-        FiremanPosition firemanPosition_b;
-        if (distance12 < (round1 + round2)) {
-            double theta1 = Math.acos((Math.pow(round1, 2) + Math.pow(distance12, 2) - Math.pow(round2, 2)) / (2 *
-                    round1 * distance12));
-            double theta2 = Math.atan((firemanPosition2.getY() - firemanPosition1.getY()) / (firemanPosition2.getX()
-                    - firemanPosition1.getX()));
-            firemanPosition_a = new FiremanPosition();
-            firemanPosition_a.setX(firemanPosition1.getX() + round1 * Math.cos(theta1 + theta2));
-            firemanPosition_a.setY(firemanPosition1.getY() + round1 * Math.sin(theta1 + theta2));
-            firemanPosition_b = new FiremanPosition();
-            firemanPosition_b.setX(firemanPosition1.getX() + round1 * Math.cos(theta2 - theta1));
-            firemanPosition_b.setY(firemanPosition1.getY() + round1 * Math.sin(theta2 - theta1));
-            double distance1 = Math.sqrt(Math.pow(firemanPosition_a.getX() - firemanPosition3.getX(), 2) + Math.pow
-                    (firemanPosition_a.getY() - firemanPosition3.getY(), 2));
-            double distance2 = Math.sqrt(Math.pow(firemanPosition_b.getX() - firemanPosition3.getX(), 2) + Math.pow
-                    (firemanPosition_b.getY() - firemanPosition3.getY(), 2));
-            if (Math.abs(distance1 - round3) <= Math.abs(distance2 - round3)) {
-                firemanPosition = firemanPosition_a;
+    //保存历史firemanPosition对象
+    //深度copy 保存历史数据
+    private ArrayList<FiremanPosition> saveFiremanPositionHistory(ArrayList<FiremanPosition> firemanPositionArray) {
+        ArrayList<FiremanPosition> lastFiremanPositionArrayList = new ArrayList<FiremanPosition>(firemanPositionArray.size());
+        Iterator<FiremanPosition> iterator = firemanPositionArray.iterator();
+        int i = 0;
+        while (iterator.hasNext()) {
+            FiremanPosition fp = iterator.next().clone();
+            lastFiremanPositionArrayList.add(fp);
+            double x = fp.getX();
+            double y = fp.getY();
+            double z = fp.getZ();
+            Log.i("arix", "LastPosition" + i + " x; " + x + " y: " + y + " z: " + z);
+            i++;
+        }
+        return lastFiremanPositionArrayList;
+    }
+
+    //知道前三个点计算其他点
+    private void calculateOthersPointFrom2() {
+
+        distance[0] = mDistanceArray[0][indexResult[1]];              //01 and 02
+        distance[1] = mDistanceArray[0][indexResult[2]];              //02 and 03;
+        distance[2] = mDistanceArray[indexResult[1]][indexResult[2]]; //03 and 01
+        for (int i = 0; i < 7; i++) {
+
+            if (i == indexResult[0]) {
+                arix[i][0] = pref[0][0]; //x坐标
+                arix[i][1] = pref[0][1]; //y
+                arix[i][2] = pref[0][2]; //z
+            } else if (i == indexResult[1]) {
+                arix[i][0] = pref[1][0]; //x坐标
+                arix[i][1] = pref[1][1]; //y
+                arix[i][2] = pref[1][2]; //z
+            } else if (i == indexResult[2]) {
+                arix[i][0] = pref[2][0]; //x坐标
+                arix[i][1] = pref[2][1]; //y
+                arix[i][2] = pref[2][2]; //z
             } else {
-                firemanPosition = firemanPosition_b;
+                rk[0] = mDistanceArray[indexResult[0]][i];
+                rk[1] = mDistanceArray[indexResult[1]][i];
+                rk[2] = mDistanceArray[indexResult[2]][i];
+                double[] calculateResult = MatrixUtil.calculateByAngle(i, pref, distance, rk);
+                arix[i][0] = calculateResult[0];
+                arix[i][1] = calculateResult[1];
+                arix[i][2] = calculateResult[2];
             }
         }
-        return firemanPosition;
     }
 
-    private FiremanPosition calculate3rdPointFrom2(FiremanPosition firemanPosition1, FiremanPosition
-            firemanPosition2, double distance12, double round1, double round2) {
-        FiremanPosition firemanPosition = null;
-        if (distance12 <= (round1 + round2)) {
-            double theta1 = Math.acos((Math.pow(round1, 2) + Math.pow(distance12, 2) - Math.pow(round2, 2)) / (2 *
-                    round1 * distance12));
-            double theta2 = Math.atan((firemanPosition2.getY() - firemanPosition1.getY()) / (firemanPosition2.getX()
-                    - firemanPosition1.getX()));
-            firemanPosition = new FiremanPosition();
-            firemanPosition.setX(firemanPosition1.getX() + round1 * Math.cos(theta1 + theta2));
-            firemanPosition.setY(firemanPosition1.getY() + round1 * Math.sin(theta1 + theta2));
-        }
-        return firemanPosition;
-    }
+
 }
