@@ -33,6 +33,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
+        android:text="Calculate_Old"
         android:background="@null"
         android:textSize="30sp"/>
 
