@@ -138,7 +138,7 @@ public class MainActivity extends Activity {
                 firemanPosition = firemanPosition_a;
             } else {
                 firemanPosition = firemanPosition_b;
-            }
+            }   
         }
         return firemanPosition;
     }
