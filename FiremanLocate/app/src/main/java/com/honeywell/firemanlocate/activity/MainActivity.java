@@ -57,8 +57,6 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 mFiremanPositionArrayList.clear();
-                //  calculatePointsPosition(false);
-                // calculatePointsPosition22();
                 calculatePointsPosition(false); //计算
             }
         });
@@ -72,7 +70,6 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 mFiremanPositionArrayList.clear();
-                //  calculatePointsPosition(true);
                 loadDataFromFile(Constant.secondDistan);
                 calculatePointsPosition(false); //计算
             }

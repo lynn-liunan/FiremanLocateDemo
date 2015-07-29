@@ -18,12 +18,15 @@ import com.honeywell.firemanlocate.R;
 import com.honeywell.firemanlocate.model.DataType;
 import com.honeywell.firemanlocate.model.IPackage;
 import com.honeywell.firemanlocate.model.Report;
+import com.honeywell.firemanlocate.model.Report2;
 import com.honeywell.firemanlocate.model.TimeACK;
 import com.honeywell.firemanlocate.model.TimeSync;
 import com.honeywell.firemanlocate.util.NetworkUtil;
 import com.honeywell.firemanlocate.network.UDPClient;
 import com.honeywell.firemanlocate.network.UDPServer;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -40,6 +43,7 @@ public class ShowActivity extends Activity {
 
     private TimeSync mTimeSync;
     private PackageGotReceiver mMessageReceiver;
+    private List<IPackage> mReportList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +52,7 @@ public class ShowActivity extends Activity {
         mStartButton = (Button) findViewById(R.id.start_button);
         mScrollView = (ScrollView) findViewById(R.id.scroll_view);
         mLogTextView = (TextView) findViewById(R.id.msg_log_text);
+        mReportList = new ArrayList<IPackage>();
     }
 
     @Override
@@ -73,6 +78,8 @@ public class ShowActivity extends Activity {
                         mTimeSync = new TimeSync();
                         UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(ShowActivity
                                 .this), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
+                        if (!mReportList.isEmpty()) mReportList.clear();
+
                         Message msg = new Message();
                         msg.what = SEND_RESULT;
                         msg.obj = sender.send();
@@ -111,7 +118,8 @@ public class ShowActivity extends Activity {
                     iPackage = new TimeACK(msgReceived);
                     break;
                 case REPORT:
-                    iPackage = new Report(msgReceived);
+                    iPackage = new Report2(msgReceived);
+                    mReportList.add(iPackage);
                     break;
                 default:
                     break;
