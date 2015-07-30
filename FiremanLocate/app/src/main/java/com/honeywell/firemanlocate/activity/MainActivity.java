@@ -19,7 +19,7 @@ import org.json.JSONException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import config.Constant;
+import com.honeywell.firemanlocate.config.Constant;
 
 public class MainActivity extends BaseActivity {
 

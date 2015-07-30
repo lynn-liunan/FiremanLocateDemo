@@ -1,4 +1,4 @@
-package config;
+package com.honeywell.firemanlocate.config;
 
 /**
  * Created by Vincent on 28/7/15.

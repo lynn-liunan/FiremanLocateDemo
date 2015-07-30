@@ -118,7 +118,7 @@ public class ShowActivity extends Activity {
                     iPackage = new TimeACK(msgReceived);
                     break;
                 case REPORT:
-                    iPackage = new Report2(msgReceived);
+                    iPackage = new Report(msgReceived);
                     mReportList.add(iPackage);
                     break;
                 default:
