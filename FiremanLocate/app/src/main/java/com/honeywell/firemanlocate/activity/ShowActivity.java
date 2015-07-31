@@ -8,11 +8,14 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.honeywell.firemanlocate.R;
 import com.honeywell.firemanlocate.model.DataType;
@@ -40,10 +43,11 @@ public class ShowActivity extends Activity {
     private Button mStartButton;
     private ScrollView mScrollView;
     private TextView mLogTextView;
+    private EditText mAddressEditText;
 
     private TimeSync mTimeSync;
     private PackageGotReceiver mMessageReceiver;
-    private List<IPackage> mReportList;
+    private List<IPackage> mReportList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +56,7 @@ public class ShowActivity extends Activity {
         mStartButton = (Button) findViewById(R.id.start_button);
         mScrollView = (ScrollView) findViewById(R.id.scroll_view);
         mLogTextView = (TextView) findViewById(R.id.msg_log_text);
-        mReportList = new ArrayList<IPackage>();
+        mAddressEditText = (EditText) findViewById(R.id.ip_edittext);
     }
 
     @Override
@@ -71,13 +75,18 @@ public class ShowActivity extends Activity {
         mStartButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (TextUtils.isEmpty(mAddressEditText.getText().toString().trim())) {
+                    Toast.makeText(ShowActivity.this, R.string.input_address, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                final String ipAddressString = mAddressEditText.getText().toString().trim();
                 new Thread() {
 
                     @Override
                     public void run() {
                         mTimeSync = new TimeSync();
-                        UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(ShowActivity
-                                .this), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
+                        UDPClient sender = new UDPClient(ipAddressString/*NetworkUtil.getIPAddress
+                                (ShowActivity.this)*/, mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
                         if (!mReportList.isEmpty()) mReportList.clear();
 
                         Message msg = new Message();

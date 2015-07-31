@@ -8,10 +8,5 @@
     <string name="start">Start</string>
     <string name="search">Search&#8230;</string>
     <string name="load_file_first">Please load data from sd card</string>
-
-    <string name="title_activity_first">FirstActivity</string>
-    <string name="first_activity">I\'m the first activity</string>
-    <string name="go_to_second">Go to the second activity</string>
-    <string name="title_activity_second">SecondActivity</string>
-    <string name="second_activity">I\'m the second activity</string>
+    <string name="input_address">Please input your address</string>
 </resources>
