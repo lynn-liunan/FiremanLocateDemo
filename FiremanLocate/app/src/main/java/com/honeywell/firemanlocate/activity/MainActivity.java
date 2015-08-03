@@ -135,7 +135,7 @@ public class MainActivity extends BaseActivity {
             return;
         }
 
-         arix = new double[mDistanceArray.length][3];
+        arix = new double[mDistanceArray.length][3];
 //        arix = new double[mDistanceMap.size()][3];
         indexResult = MatrixUtil.calculateMaxDistant(mDistanceArray); // 1 计算最大三个点下标
         // indexResult = MatrixUtil.calculateMaxDistant2(mDistanceMap);

@@ -107,6 +107,7 @@ public class GraphicalActivity extends Activity implements OnClickListener {
 
         Bundle extras = getIntent().getExtras();
         mChart = (AbstractChart) extras.getSerializable(ChartFactory.CHART);
+        mLastFiremanPositionArrayList = (ArrayList) extras.getSerializable(ChartFactory.LastFIREMANPOSITON);
         mGraphicaView = new GraphicalView(this, mChart);
         String title = extras.getString(ChartFactory.TITLE);
         if (title == null) {
@@ -114,6 +115,8 @@ public class GraphicalActivity extends Activity implements OnClickListener {
         } else if (title.length() > 0) {
             setTitle(title);
         }
+        mGraphicaView.setScaleX(0.01f);
+        mGraphicaView.setScaleY(0.01f);
         mGraphicalPanel.addView(mGraphicaView);
         mGraphicaView.invalidate();
     }
@@ -151,7 +154,7 @@ public class GraphicalActivity extends Activity implements OnClickListener {
             case R.id.switch_XY:
                 mGraphicalPanel.removeView(mGraphicaView);
                 AbstractChart newChart = switchXYData(mChart);
-                 mGraphicaView = new GraphicalView(this, newChart);
+                mGraphicaView = new GraphicalView(this, newChart);
                 mChart = newChart;
                 mGraphicalPanel.addView(mGraphicaView);
                 break;
@@ -216,6 +219,7 @@ public class GraphicalActivity extends Activity implements OnClickListener {
             }
         }
     };
+
     //service给到的广播
     private class UpdateViewReceiver extends BroadcastReceiver {
 
@@ -230,8 +234,9 @@ public class GraphicalActivity extends Activity implements OnClickListener {
             }
         }
     }
+
     //定时重绘坐标
-    private XYChart repeatGraphicaView(){
+    private XYChart repeatGraphicaView() {
         String[] titles = new String[mFiremanPositionArrayList.size()];
         for (int i = 0; i < mFiremanPositionArrayList.size(); i++) {
             titles[i] = "Fireman " + (i + 1);
@@ -255,7 +260,7 @@ public class GraphicalActivity extends Activity implements OnClickListener {
             styles[i] = mPointStyles[i % mPointStyles.length];
         }
         XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
-      //  XYMultipleSeriesRenderer renderer = buildRenderer(colors, styles);
+        //  XYMultipleSeriesRenderer renderer = buildRenderer(colors, styles);
         setChartSettings(renderer, "", "X", "Y", -2, 8, -2, 8, Color.WHITE,
                 Color.WHITE);
         renderer.setPointSize(15);
@@ -282,9 +287,10 @@ public class GraphicalActivity extends Activity implements OnClickListener {
         return new ScatterChart(dataset, renderer);
 
     }
+
     private void setChartSettings(XYMultipleSeriesRenderer renderer, String title, String xTitle,
-                                    String yTitle, double xMin, double xMax, double yMin, double yMax, int axesColor,
-                                    int labelsColor) {
+                                  String yTitle, double xMin, double xMax, double yMin, double yMax, int axesColor,
+                                  int labelsColor) {
         renderer.setChartTitle(title);
         renderer.setXTitle(xTitle);
         renderer.setYTitle(yTitle);

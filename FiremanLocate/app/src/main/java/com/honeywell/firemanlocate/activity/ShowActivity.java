@@ -99,28 +99,28 @@ public class ShowActivity extends Activity {
 //        mStartButton.setOnClickListener(new OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
-                new Thread() {
+        new Thread() {
 
-                    @Override
-                    public void run() {
-                        mTimeSync = new TimeSync();
-                        UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(ShowActivity
-                                .this), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
-                        if (!mReportList.isEmpty()) mReportList.clear();
+            @Override
+            public void run() {
+                mTimeSync = new TimeSync();
+                UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(ShowActivity
+                        .this), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
+                if (!mReportList.isEmpty()) mReportList.clear();
 
-                        Message msg = new Message();
-                        msg.what = SEND_RESULT;
-                        msg.obj = sender.send();
-                        mHandler.sendMessage(msg);
-                    }
+                Message msg = new Message();
+                msg.what = SEND_RESULT;
+                msg.obj = sender.send();
+                mHandler.sendMessage(msg);
+            }
 
-                }.start();
+        }.start();
 //            }
 //        });
         mDrawButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = (new ScatterChart(mFiremanPositionArrayList)).execute(ShowActivity.this);
+                Intent intent = (new ScatterChart(mFiremanPositionArrayList, mLastFiremanPositionArrayList)).execute(ShowActivity.this);
                 startActivity(intent);
             }
         });
@@ -135,6 +135,10 @@ public class ShowActivity extends Activity {
                 case SEND_RESULT:
                     mLogTextView.setText(msg.obj.toString() + mTimeSync.getPrintableString());
                     break;
+                case SERVICE_RESULT:
+                    mFiremanPositionArrayList = MatrixUtil2.calculatePointsPosition(mDistanceMap, mLastFiremanPositionArrayList);
+                    mLastFiremanPositionArrayList = MatrixUtil2.saveFiremanPositionHistory(mFiremanPositionArrayList);
+                    break;
                 default:
                     break;
             }
@@ -147,9 +151,6 @@ public class ShowActivity extends Activity {
                 case SEND_RESULT:
                     mFiremanPositionArrayList = MatrixUtil2.calculatePointsPosition(mDistanceMap, mLastFiremanPositionArrayList);
                     mLastFiremanPositionArrayList = MatrixUtil2.saveFiremanPositionHistory(mFiremanPositionArrayList);
-                    break;
-                case SERVICE_RESULT:
-
                     break;
                 default:
                     break;

@@ -65,7 +65,7 @@ public class MatrixUtil2 {
 
     public static ArrayList<FiremanPosition> calculatePointsPosition(Map mDistanceMap, ArrayList<FiremanPosition> mLastFiremanPositionArrayList) {
         double[][] pref = new double[3][3];
-        double roataTheta =0.0;
+        double roataTheta = 0.0;
         double[] rk = new double[3];
         ArrayList<FiremanPosition> mFiremanPositionArrayList = new ArrayList<>();
         if (mDistanceMap == null) {
@@ -78,14 +78,14 @@ public class MatrixUtil2 {
 //        indexResult = MatrixUtil.calculateMaxDistant(mDistanceArray); // 1 计算最大三个点下标
         int[] indexResult = calculateMaxDistant2(mDistanceMap);
         if (mLastFiremanPositionArrayList != null) {
-             roataTheta = calculateRotateAngle(mLastFiremanPositionArrayList, indexResult);      //计算旋转角度 如果有历史数据
+            roataTheta = calculateRotateAngle(mLastFiremanPositionArrayList, indexResult);      //计算旋转角度 如果有历史数据
         }
 
 
 //        pref = MatrixUtil.calculateThreePoint(mDistanceArray, indexResult, pref, mLastFiremanPositionArrayList, roataTheta); //确定前三个点坐标
         pref = calculateThreePoint2(mDistanceMap, indexResult, pref, mLastFiremanPositionArrayList, roataTheta); //确定前三个点坐标
-     //   arix = MatrixUtil.calculateOthersPointFrom2(arix, mDistanceArray, indexResult, pref, rk); //计算其他点坐标
-        arix = calculateOthersPointFrom(arix, mDistanceMap, indexResult, pref,rk); //计算其他点坐标
+        //   arix = MatrixUtil.calculateOthersPointFrom2(arix, mDistanceArray, indexResult, pref, rk); //计算其他点坐标
+        arix = calculateOthersPointFrom(arix, mDistanceMap, indexResult, pref, rk); //计算其他点坐标
         arix = MatrixUtil.transferAxis(arix, roataTheta);  //最后一次旋转，算出旋转坐标
         //将坐标换为对象
         for (int i = 0; i < arix.length; i++) {
@@ -94,13 +94,14 @@ public class MatrixUtil2 {
             Log.i("arix :", "arix" + i + " z: " + arix[i][2]);
             mFiremanPositionArrayList.add(new FiremanPosition(arix[i][0], arix[i][1], arix[i][2]));
         }
-     //   mLastFiremanPositionArrayList = saveFiremanPositionHistory(mFiremanPositionArrayList);
+        //   mLastFiremanPositionArrayList = saveFiremanPositionHistory(mFiremanPositionArrayList);
         return mFiremanPositionArrayList;
     }
+
     //保存历史firemanPosition对象
     //深度copy 保存历史数据
     public static ArrayList<FiremanPosition> saveFiremanPositionHistory(ArrayList<FiremanPosition> firemanPositionArray) {
-        ArrayList<FiremanPosition> lastFiremanPositionArrayList = new ArrayList<FiremanPosition>(firemanPositionArray.size());
+        ArrayList<FiremanPosition> lastFiremanPositionArrayList = new ArrayList<FiremanPosition>();
         Iterator<FiremanPosition> iterator = firemanPositionArray.iterator();
         int i = 0;
         while (iterator.hasNext()) {
@@ -114,6 +115,7 @@ public class MatrixUtil2 {
         }
         return lastFiremanPositionArrayList;
     }
+
     //矩阵转置
     public static double[][] exchange(double[][] arrayA, double[][] arrayB) {
         for (int i = 0; i < arrayA.length; i++) {

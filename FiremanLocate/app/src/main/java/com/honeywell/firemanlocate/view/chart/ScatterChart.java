@@ -19,12 +19,20 @@ import java.util.ArrayList;
 public class ScatterChart extends BaseChart {
 
     private ArrayList<FiremanPosition> mFiremanPositionArrayList;
+    private ArrayList<FiremanPosition> mLastFiremanPositionArrayList;
     private int[] mColorsArray = {Color.RED, Color.RED, Color.RED, Color.RED, Color.RED, Color
             .RED, Color.RED, Color.RED, Color.RED, Color.RED};
     private PointStyle[] mPointStyles = {PointStyle.CIRCLE, PointStyle.CIRCLE, PointStyle.CIRCLE,
             PointStyle.CIRCLE, PointStyle.CIRCLE, PointStyle.CIRCLE};
 
+    public ScatterChart(ArrayList<FiremanPosition> firemanPositionArrayList, ArrayList<FiremanPosition> lastFiremanPositionArrayList) {
+
+        mFiremanPositionArrayList = firemanPositionArrayList;
+        mLastFiremanPositionArrayList = lastFiremanPositionArrayList;
+    }
+
     public ScatterChart(ArrayList<FiremanPosition> firemanPositionArrayList) {
+
         mFiremanPositionArrayList = firemanPositionArrayList;
     }
 
@@ -49,12 +57,6 @@ public class ScatterChart extends BaseChart {
         return null;
     }
 
-    /**
-     * Executes the chart demo.
-     *
-     * @param context the context
-     * @return the built intent
-     */
     @Override
     public Intent execute(Context context) {
         String[] titles = new String[mFiremanPositionArrayList.size()];
@@ -92,6 +94,52 @@ public class ScatterChart extends BaseChart {
         for (int i = 0; i < renderer.getSeriesRendererCount(); i++) {
             ((XYSeriesRenderer) renderer.getSeriesRendererAt(i)).setFillPoints(true);
         }
-        return ChartFactory.getScatterChartIntent(context, buildDataset(titles, valuesX, valuesY), renderer);
+        return ChartFactory.getScatterChartIntent(context, buildDataset(titles, valuesX, valuesY), renderer, mLastFiremanPositionArrayList);
     }
+
+    /**
+     * Executes the chart demo.
+     *
+     * @param context the context
+     * @return the built intent
+     */
+//    @Override
+//    public Intent execute(Context context, ArrayList<FiremanPosition> mLastFiremanPositionArrayList) {
+//        String[] titles = new String[mFiremanPositionArrayList.size()];
+//        for (int i = 0; i < mFiremanPositionArrayList.size(); i++) {
+//            titles[i] = "Fireman " + (i + 1);
+//        }
+//        ArrayList<double[]> valuesX = new ArrayList<>();
+//        ArrayList<double[]> valuesY = new ArrayList<>();
+//        for (int i = 0; i < mFiremanPositionArrayList.size(); i++) {
+//            double[] xValues = new double[1];
+//            double[] yValues = new double[1];
+//            xValues[0] = mFiremanPositionArrayList.get(i).getX();
+//            yValues[0] = mFiremanPositionArrayList.get(i).getY();
+//            valuesX.add(xValues);
+//            valuesY.add(yValues);
+//        }
+//        int[] colors = new int[mFiremanPositionArrayList.size()];
+//        for (int i = 0; i < mFiremanPositionArrayList.size(); i++) {
+//            colors[i] = mColorsArray[i % mColorsArray.length];
+//        }
+//        PointStyle[] styles = new PointStyle[mFiremanPositionArrayList.size()];
+//        for (int i = 0; i < mFiremanPositionArrayList.size(); i++) {
+//            styles[i] = mPointStyles[i % mPointStyles.length];
+//        }
+//        XYMultipleSeriesRenderer renderer = buildRenderer(colors, styles);
+//        setChartSettings(renderer, "", "X", "Y", -2, 8, -2, 8, Color.WHITE,
+//                Color.WHITE);
+//        renderer.setPointSize(15);
+//        renderer.setLabelsTextSize(25);
+//        renderer.setLabelsColor(Color.BLACK);
+//        renderer.setAxisTitleTextSize(50);
+//        renderer.setAxesColor(Color.BLACK);
+//        renderer.setShowLegend(false);
+//        renderer.setYLabelsPadding(10);
+//        for (int i = 0; i < renderer.getSeriesRendererCount(); i++) {
+//            ((XYSeriesRenderer) renderer.getSeriesRendererAt(i)).setFillPoints(true);
+//        }
+//        return ChartFactory.getScatterChartIntent(context, buildDataset(titles, valuesX, valuesY), renderer, mLastFiremanPositionArrayList);
+//    }
 }
