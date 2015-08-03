@@ -272,6 +272,7 @@ public class GraphicalActivity extends Activity implements OnClickListener {
         renderer.setYLabelsPadding(10);
         renderer.setLegendTextSize(15);
         renderer.setMargins(new int[]{20, 30, 15, 20});
+        renderer.setScale(0.01f);
         int length = colors.length;
         for (int i = 0; i < length; i++) {
             XYSeriesRenderer r = new XYSeriesRenderer();
