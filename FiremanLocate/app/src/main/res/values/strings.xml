@@ -14,4 +14,8 @@
     <string name="go_to_second">Go to the second activity</string>
     <string name="title_activity_second">SecondActivity</string>
     <string name="second_activity">I\'m the second activity</string>
+    <string name="title_activity_test_service">TestServiceActivity</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
 </resources>

@@ -16,17 +16,24 @@ import android.widget.TextView;
 
 import com.honeywell.firemanlocate.R;
 import com.honeywell.firemanlocate.model.DataType;
+import com.honeywell.firemanlocate.model.FiremanPosition;
 import com.honeywell.firemanlocate.model.IPackage;
 import com.honeywell.firemanlocate.model.Report;
-import com.honeywell.firemanlocate.model.Report2;
 import com.honeywell.firemanlocate.model.TimeACK;
 import com.honeywell.firemanlocate.model.TimeSync;
+import com.honeywell.firemanlocate.service.CalculatePositionService;
+import com.honeywell.firemanlocate.util.MatrixUtil;
+import com.honeywell.firemanlocate.util.MatrixUtil2;
 import com.honeywell.firemanlocate.util.NetworkUtil;
 import com.honeywell.firemanlocate.network.UDPClient;
 import com.honeywell.firemanlocate.network.UDPServer;
+import com.honeywell.firemanlocate.view.chart.ScatterChart;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -36,7 +43,10 @@ import java.util.concurrent.Executors;
 public class ShowActivity extends Activity {
 
     private static final int SEND_RESULT = 11;
-
+    private static final int SERVICE_RESULT = 12;
+    public static final String send_parameter = "draw_pramater";
+    public static final String UPDATE_DATA = "update_data";
+    public static final String UPDATE_DRAWVIEW_ACTION = "draw_position_received_action";
     private Button mStartButton;
     private ScrollView mScrollView;
     private TextView mLogTextView;
@@ -44,6 +54,14 @@ public class ShowActivity extends Activity {
     private TimeSync mTimeSync;
     private PackageGotReceiver mMessageReceiver;
     private List<IPackage> mReportList;
+    private Button mDrawButton;
+
+    private BroadcastReceiver mUpdateReceiver;
+
+    private Map mDistanceMap = new HashMap<>(); //存位置关系和距离
+    private ArrayList<FiremanPosition> mFiremanPositionArrayList = new ArrayList<>();
+    private ArrayList<FiremanPosition> mLastFiremanPositionArrayList = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,24 +71,34 @@ public class ShowActivity extends Activity {
         mScrollView = (ScrollView) findViewById(R.id.scroll_view);
         mLogTextView = (TextView) findViewById(R.id.msg_log_text);
         mReportList = new ArrayList<IPackage>();
+        mDrawButton = (Button) findViewById(R.id.draw_position);
+        Intent intent = new Intent(ShowActivity.this, CalculatePositionService.class);
+        startService(intent);  //主入口启动数据接受service
+
     }
 
     @Override
     protected void onStart() {
         super.onStart();
 
+        //服务器给到的广播
         mMessageReceiver = new PackageGotReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(PackageGotReceiver.MSG_RECEIVED_ACTION);
         registerReceiver(mMessageReceiver, intentFilter);
+        //service 给到的广播
+        mUpdateReceiver = new UpdateViewReceiver();
+        IntentFilter intentFilter2 = new IntentFilter();
+        intentFilter2.addAction(UPDATE_DRAWVIEW_ACTION);
+        registerReceiver(mUpdateReceiver, intentFilter2);
 
         ExecutorService exec = Executors.newCachedThreadPool();
         UDPServer server = new UDPServer(this);
         exec.execute(server);
 
-        mStartButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
+//        mStartButton.setOnClickListener(new OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
                 new Thread() {
 
                     @Override
@@ -87,8 +115,17 @@ public class ShowActivity extends Activity {
                     }
 
                 }.start();
+//            }
+//        });
+        mDrawButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = (new ScatterChart(mFiremanPositionArrayList)).execute(ShowActivity.this);
+                startActivity(intent);
             }
         });
+
+
     }
 
     private Handler mHandler = new Handler() {
@@ -103,7 +140,24 @@ public class ShowActivity extends Activity {
             }
         }
     };
+    private Handler mHandlerUpdateData = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case SEND_RESULT:
+                    mFiremanPositionArrayList = MatrixUtil2.calculatePointsPosition(mDistanceMap, mLastFiremanPositionArrayList);
+                    mLastFiremanPositionArrayList = MatrixUtil2.saveFiremanPositionHistory(mFiremanPositionArrayList);
+                    break;
+                case SERVICE_RESULT:
 
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
+    //服务器给到的广播
     public class PackageGotReceiver extends BroadcastReceiver {
         public static final String MSG_RECEIVED_ACTION = "msg_received_action";
 
@@ -135,9 +189,25 @@ public class ShowActivity extends Activity {
         }
     }
 
+    //service给到的广播
+    private class UpdateViewReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            List<Report> mReportList = (ArrayList<Report>) intent.getSerializableExtra(UPDATE_DATA);
+            if (mReportList != null) {
+                Message msg = new Message();
+                msg.what = SERVICE_RESULT;
+                msg.obj = MatrixUtil.parseList(mReportList, mDistanceMap);
+                mHandler.sendMessage(msg);
+            }
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(mMessageReceiver);
+        unregisterReceiver(mUpdateReceiver);
     }
 }

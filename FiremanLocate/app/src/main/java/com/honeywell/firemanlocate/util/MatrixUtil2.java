@@ -1,14 +1,23 @@
 package com.honeywell.firemanlocate.util;
 
+import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
+import android.widget.Toast;
 
+import com.honeywell.firemanlocate.R;
+import com.honeywell.firemanlocate.activity.ShowActivity;
 import com.honeywell.firemanlocate.model.FiremanPosition;
 import com.honeywell.firemanlocate.model.IPackage;
 import com.honeywell.firemanlocate.model.Report;
+import com.honeywell.firemanlocate.view.chart.ScatterChart;
+import com.honeywell.firemanlocate.view.chart.ScatterChart2;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -18,10 +27,20 @@ import Jama.Matrix;
 /**
  * Created by Vincent on 28/7/15.
  */
-public class MatrixUtil {
+public class MatrixUtil2 {
+    private double[][] mDistanceArray;
+    //    private int[] indexResult = null; //save max and third point index
+    private ArrayList<FiremanPosition> mFiremanPositionArrayList = new ArrayList<>();
+    //    private ArrayList<FiremanPosition> mLastFiremanPositionArrayList = null;
+    //2 通过上一次坐标点计算旋转坐标原点 返回旋转角度
+//    double roataTheta = 0.0;
+    double[] rk = new double[3];
+//    double[][] pref = new double[3][3]; //3行2列矩阵  前3个坐标点缓存
+//    double[][] arix = null;
+
 
     //遍历reportList，封装成distanceMapduixiang
-    public static Map parseList(List<Report> mReportList,Map mDistanceMap) {
+    public static Map parseList(ArrayList<Report> mReportList, Map mDistanceMap) {
 
         for (int j = 0; j < mReportList.size(); j++) {
             IPackage iPackage = mReportList.get(j);
@@ -43,6 +62,58 @@ public class MatrixUtil {
         }
         return mDistanceMap;
     }
+
+    public static ArrayList<FiremanPosition> calculatePointsPosition(Map mDistanceMap, ArrayList<FiremanPosition> mLastFiremanPositionArrayList) {
+        double[][] pref = new double[3][3];
+        double roataTheta =0.0;
+        double[] rk = new double[3];
+        ArrayList<FiremanPosition> mFiremanPositionArrayList = new ArrayList<>();
+        if (mDistanceMap == null) {
+
+            return null;
+        }
+
+//        arix = new double[mDistanceArray.length][3];
+        double[][] arix = new double[mDistanceMap.size()][3];
+//        indexResult = MatrixUtil.calculateMaxDistant(mDistanceArray); // 1 计算最大三个点下标
+        int[] indexResult = calculateMaxDistant2(mDistanceMap);
+        if (mLastFiremanPositionArrayList != null) {
+             roataTheta = calculateRotateAngle(mLastFiremanPositionArrayList, indexResult);      //计算旋转角度 如果有历史数据
+        }
+
+
+//        pref = MatrixUtil.calculateThreePoint(mDistanceArray, indexResult, pref, mLastFiremanPositionArrayList, roataTheta); //确定前三个点坐标
+        pref = calculateThreePoint2(mDistanceMap, indexResult, pref, mLastFiremanPositionArrayList, roataTheta); //确定前三个点坐标
+     //   arix = MatrixUtil.calculateOthersPointFrom2(arix, mDistanceArray, indexResult, pref, rk); //计算其他点坐标
+        arix = calculateOthersPointFrom(arix, mDistanceMap, indexResult, pref,rk); //计算其他点坐标
+        arix = MatrixUtil.transferAxis(arix, roataTheta);  //最后一次旋转，算出旋转坐标
+        //将坐标换为对象
+        for (int i = 0; i < arix.length; i++) {
+            Log.i("arix :", "arix" + i + " x: " + arix[i][0]);
+            Log.i("arix :", "arix" + i + " y: " + arix[i][1]);
+            Log.i("arix :", "arix" + i + " z: " + arix[i][2]);
+            mFiremanPositionArrayList.add(new FiremanPosition(arix[i][0], arix[i][1], arix[i][2]));
+        }
+     //   mLastFiremanPositionArrayList = saveFiremanPositionHistory(mFiremanPositionArrayList);
+        return mFiremanPositionArrayList;
+    }
+    //保存历史firemanPosition对象
+    //深度copy 保存历史数据
+    public static ArrayList<FiremanPosition> saveFiremanPositionHistory(ArrayList<FiremanPosition> firemanPositionArray) {
+        ArrayList<FiremanPosition> lastFiremanPositionArrayList = new ArrayList<FiremanPosition>(firemanPositionArray.size());
+        Iterator<FiremanPosition> iterator = firemanPositionArray.iterator();
+        int i = 0;
+        while (iterator.hasNext()) {
+            FiremanPosition fp = iterator.next().clone();
+            lastFiremanPositionArrayList.add(fp);
+            double x = fp.getX();
+            double y = fp.getY();
+            double z = fp.getZ();
+            Log.i("arix", "LastPosition" + i + " x; " + x + " y: " + y + " z: " + z);
+            i++;
+        }
+        return lastFiremanPositionArrayList;
+    }
     //矩阵转置
     public static double[][] exchange(double[][] arrayA, double[][] arrayB) {
         for (int i = 0; i < arrayA.length; i++) {
@@ -59,7 +130,7 @@ public class MatrixUtil {
                 {Math.sin(roataTheta), Math.cos(roataTheta), 0}, {0, 0, 1}};
         double[][] p_rotate = new double[pref.length][pref[0].length];
         double[][] pref_transfer = new double[pref[0].length][pref.length];
-        pref_transfer = MatrixUtil.exchange(pref, pref_transfer);
+        pref_transfer = MatrixUtil2.exchange(pref, pref_transfer);
         for (int i = 0; i < pref.length; i++) {
             p_rotate[i][0] = T[0][0] * pref_transfer[0][i] + T[0][1] * pref_transfer[1][i] + T[0][2] * pref_transfer[2][i];
             p_rotate[i][1] = T[1][0] * pref_transfer[0][i] + T[1][1] * pref_transfer[1][i] + T[1][2] * pref_transfer[2][i];
@@ -93,36 +164,36 @@ public class MatrixUtil {
         return new int[]{0, max_index, third_index};
     }
 
-//    public static int[] calculateMaxDistant2(Map distanceMap) {
-//        double max_data1 = 0.0;
-//        double max_data2 = 0.0;
-//        int max_index = 0;
-//        int third_index = 0;
-//        Object[] key = distanceMap.keySet().toArray();
-//        Object[] firstLineInnerKey = ((Map) distanceMap.get(key[0])).keySet().toArray();  //第一行key
-//        Object[] maxLineInnerKey = ((Map) distanceMap.get(key[max_index])).keySet().toArray(); //最大行key
-//
-//        double theta = 0.0;
-//        for (int i = 0; i < ((Map) distanceMap.get(key[0])).size(); i++) {
-//            if (((short) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) > max_data1) {
-//                max_data1 = ((short) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i]));
-//                max_index = i;
-//            }
-//        }
-//        for (int i = 0; i < ((Map) distanceMap.get(key[0])).size(); i++) {
-//            theta = Math.acos((Math.pow(((short) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])), 2)
-//                    + Math.pow(((short) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i])), 2) - Math.pow(((short) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[max_index])), 2))
-//                    / (2 * ((short) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) * ((short) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i]))));
-//            if (((short) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) != max_data1 && (((short) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i]))
-//                    + ((short) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i])) > max_data2)
-//                    && theta >= 0.52 && theta <= 2.09) {
-//                max_data2 = ((short) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) + ((short) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i]));
-//                third_index = i;
-//            }
-//
-//        }
-//        return new int[]{0, max_index, third_index};
-//    }
+    public static int[] calculateMaxDistant2(Map distanceMap) {
+        double max_data1 = 0.0;
+        double max_data2 = 0.0;
+        int max_index = 0;
+        int third_index = 0;
+        Object[] key = distanceMap.keySet().toArray();
+        Object[] firstLineInnerKey = ((Map) distanceMap.get(key[0])).keySet().toArray();  //第一行key
+        Object[] maxLineInnerKey = ((Map) distanceMap.get(key[max_index])).keySet().toArray(); //最大行key
+
+        double theta = 0.0;
+        for (int i = 0; i < ((Map) distanceMap.get(key[0])).size(); i++) {
+            if (((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) > max_data1) {
+                max_data1 = ((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i]));
+                max_index = i;
+            }
+        }
+        for (int i = 0; i < ((Map) distanceMap.get(key[0])).size(); i++) {
+            theta = Math.acos((Math.pow(((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])), 2)
+                    + Math.pow(((int) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i])), 2) - Math.pow(((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[max_index])), 2))
+                    / (2 * ((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) * ((int) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i]))));
+            if (((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) != max_data1 && (((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i]))
+                    + ((int) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i])) > max_data2)
+                    && theta >= 0.52 && theta <= 2.09) {
+                max_data2 = ((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) + ((int) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i]));
+                third_index = i;
+            }
+
+        }
+        return new int[]{0, max_index, third_index};
+    }
 
     //通过下标计算第三个点坐标
     public static double[][] calculate3rdPointFrom2(double[][] pref, double distance12, double round1, double round2, ArrayList<FiremanPosition> mLastFiremanPositionArrayList, double roataTheta) {
@@ -170,7 +241,7 @@ public class MatrixUtil {
 
             return pref;
         }
-        double[][] error_reftemp1 = MatrixUtil.transferAxis(pref, roataTheta);
+        double[][] error_reftemp1 = MatrixUtil2.transferAxis(pref, roataTheta);
         double distance1 = Math.sqrt(
                 Math.pow(error_reftemp1[2][0] - mLastFiremanPositionArrayList.get(2).getX(), 2) +
                         Math.pow(error_reftemp1[2][1] - mLastFiremanPositionArrayList.get(2).getY(), 2)
@@ -181,7 +252,7 @@ public class MatrixUtil {
         pref[2][2] = 0;
         double[] temp_pref2 = {pref[0][0] + round1 * Math.cos(theta2 - theta1), pref[0][1] + round1 * Math.sin(theta2 - theta1), 0};
         //firemanTransferPosition1 = transferAxis(firemanPositionTemp1);
-        double[][] error_reftemp2 = MatrixUtil.transferAxis(pref, roataTheta);
+        double[][] error_reftemp2 = MatrixUtil2.transferAxis(pref, roataTheta);
         double distance2 = Math.sqrt(
                 Math.pow(error_reftemp2[2][0] - mLastFiremanPositionArrayList.get(2).getX(), 2) +
                         Math.pow(error_reftemp2[2][1] - mLastFiremanPositionArrayList.get(2).getY(), 2)
@@ -199,45 +270,45 @@ public class MatrixUtil {
     }
 
     //计算前3个点坐标
-    public static double[][] calculateThreePoint(double[][] mDistanceArray, int[] indexResult, double[][] pref, ArrayList<FiremanPosition> mLastFiremanPositionArrayList, double roataTheta) {
-        //第一个点坐标
-        pref[0][0] = 0;
-        pref[0][1] = 0;
-        pref[0][2] = 0.0;
-        //第二个点坐标
-        pref[1][0] = mDistanceArray[0][indexResult[1]];
-        pref[1][1] = 0;
-        pref[1][2] = 0.0;
-
-        pref = MatrixUtil.calculate3rdPointFrom2(pref,  //第三个点坐标
-                mDistanceArray[0][indexResult[1]], mDistanceArray[0][indexResult[2]],
-                mDistanceArray[indexResult[1]][indexResult[2]], mLastFiremanPositionArrayList, roataTheta);
-        return pref;
-    }
-    //计算前3个点坐标
-//    public static double[][] calculateThreePoint2(Map distanceMap, int[] indexResult, double[][] pref, ArrayList<FiremanPosition> mLastFiremanPositionArrayList, double roataTheta) {
-//        //第一行key
-//        Object[] key = distanceMap.keySet().toArray();
-//        Object[] firstLineInnerKey = ((Map) distanceMap.get(key[0])).keySet().toArray();  //第一行key
-//        Object[] maxLineInnerKey = ((Map) distanceMap.get(key[indexResult[1]])).keySet().toArray(); //最大行key
-//
+//    public static double[][] calculateThreePoint(double[][] mDistanceArray, int[] indexResult, double[][] pref, ArrayList<FiremanPosition> mLastFiremanPositionArrayList, double roataTheta) {
 //        //第一个点坐标
 //        pref[0][0] = 0;
 //        pref[0][1] = 0;
 //        pref[0][2] = 0.0;
 //        //第二个点坐标
-//        pref[1][0] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]])) == null ? 0 : ((short) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]]));
+//        pref[1][0] = mDistanceArray[0][indexResult[1]];
 //        pref[1][1] = 0;
 //        pref[1][2] = 0.0;
-////        double distance12, double round1, double round2
-//        double distance12 = pref[1][0];
-//        double round1 = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]])) == null ? 0 : ((short) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]]));
-//        double round2 = (((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]])) == null ? 0 : ((short) ((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]]));
-//        pref = MatrixUtil.calculate3rdPointFrom2(pref,  //第三个点坐标
-//                distance12, round1,
-//                round2, mLastFiremanPositionArrayList, roataTheta);
+//
+//        pref = MatrixUtil2.calculate3rdPointFrom2(pref,  //第三个点坐标
+//                mDistanceArray[0][indexResult[1]], mDistanceArray[0][indexResult[2]],
+//                mDistanceArray[indexResult[1]][indexResult[2]], mLastFiremanPositionArrayList, roataTheta);
 //        return pref;
 //    }
+    //计算前3个点坐标
+    public static double[][] calculateThreePoint2(Map distanceMap, int[] indexResult, double[][] pref, ArrayList<FiremanPosition> mLastFiremanPositionArrayList, double roataTheta) {
+        //第一行key
+        Object[] key = distanceMap.keySet().toArray();
+        Object[] firstLineInnerKey = ((Map) distanceMap.get(key[0])).keySet().toArray();  //第一行key
+        Object[] maxLineInnerKey = ((Map) distanceMap.get(key[indexResult[1]])).keySet().toArray(); //最大行key
+
+        //第一个点坐标
+        pref[0][0] = 0;
+        pref[0][1] = 0;
+        pref[0][2] = 0.0;
+        //第二个点坐标
+        pref[1][0] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]])) == null ? 0 : ((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]]));
+        pref[1][1] = 0;
+        pref[1][2] = 0.0;
+//        double distance12, double round1, double round2
+        double distance12 = pref[1][0];
+        double round1 = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]])) == null ? 0 : ((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]]));
+        double round2 = (((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]])) == null ? 0 : ((int) ((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]]));
+        pref = MatrixUtil.calculate3rdPointFrom2(pref,  //第三个点坐标
+                distance12, round1,
+                round2, mLastFiremanPositionArrayList, roataTheta);
+        return pref;
+    }
 
     // 确定了三个点计算剩余点坐标
     public static double[] calculateByAngle(int i, double[][] pref, double[] distance, double[] rk) {
@@ -274,7 +345,7 @@ public class MatrixUtil {
     }
 
     //计算旋转角度
-    public static double calculateRotateAngle(ArrayList<FiremanPosition> mLastFiremanPositionArrayList, int[] indexResult) {
+    public static double calculateRotateAngle(List<FiremanPosition> mLastFiremanPositionArrayList, int[] indexResult) {
         if (mLastFiremanPositionArrayList == null) {
             return 0.0;
         } else {
@@ -292,42 +363,42 @@ public class MatrixUtil {
     }
 
     //计算其他坐标点
-//    public static double[][] calculateOthersPointFrom(double[][] arix, Map distanceMap, int[] indexResult, double[][] pref, double[] rk) {
-//        //第一行key
-//        Object[] key = distanceMap.keySet().toArray();
-//        Object[] firstLineInnerKey = ((Map) distanceMap.get(key[0])).keySet().toArray();  //第一行key
-//        Object[] maxLineInnerKey = ((Map) distanceMap.get(key[indexResult[1]])).keySet().toArray(); //最大行key
-//        Object[] thirdLineInnerKey = ((Map) distanceMap.get(key[indexResult[2]])).keySet().toArray(); //第三个点 行key
-//        double[] distance = new double[3];
-//        distance[0] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]])) == null ? 0 : ((short) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]]));              //01 and 02
-//        distance[1] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]])) == null ? 0 : ((short) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]]));             //02 and 03;
-//        distance[2] = (((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]])) == null ? 0 : ((short) ((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]])); //03 and 01
-//        for (int i = 0; i < 7; i++) {
-//
-//            if (i == indexResult[0]) {
-//                arix[i][0] = pref[0][0]; //x坐标
-//                arix[i][1] = pref[0][1]; //y
-//                arix[i][2] = pref[0][2]; //z
-//            } else if (i == indexResult[1]) {
-//                arix[i][0] = pref[1][0]; //x坐标
-//                arix[i][1] = pref[1][1]; //y
-//                arix[i][2] = pref[1][2]; //z
-//            } else if (i == indexResult[2]) {
-//                arix[i][0] = pref[2][0]; //x坐标
-//                arix[i][1] = pref[2][1]; //y
-//                arix[i][2] = pref[2][2]; //z
-//            } else {
-//                rk[0] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) == null ? 0 : ((short) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i]));
-//                rk[1] = (((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[i])) == null ? 0 : ((short) ((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[i]));
-//                rk[2] = (((Map) distanceMap.get(key[indexResult[2]])).get(thirdLineInnerKey[i])) == null ? 0 : ((short) ((Map) distanceMap.get(key[indexResult[2]])).get(thirdLineInnerKey[i]));
-//                double[] calculateResult = MatrixUtil.calculateByAngle(i, pref, distance, rk);
-//                arix[i][0] = calculateResult[0];
-//                arix[i][1] = calculateResult[1];
-//                arix[i][2] = calculateResult[2];
-//            }
-//        }
-//        return arix;
-//    }
+    public static double[][] calculateOthersPointFrom(double[][] arix, Map distanceMap, int[] indexResult, double[][] pref, double[] rk) {
+        //第一行key
+        Object[] key = distanceMap.keySet().toArray();
+        Object[] firstLineInnerKey = ((Map) distanceMap.get(key[0])).keySet().toArray();  //第一行key
+        Object[] maxLineInnerKey = ((Map) distanceMap.get(key[indexResult[1]])).keySet().toArray(); //最大行key
+        Object[] thirdLineInnerKey = ((Map) distanceMap.get(key[indexResult[2]])).keySet().toArray(); //第三个点 行key
+        double[] distance = new double[3];
+        distance[0] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]])) == null ? 0 : ((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]]));              //01 and 02
+        distance[1] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]])) == null ? 0 : ((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]]));             //02 and 03;
+        distance[2] = (((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]])) == null ? 0 : ((int) ((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]])); //03 and 01
+        for (int i = 0; i < 7; i++) {
+
+            if (i == indexResult[0]) {
+                arix[i][0] = pref[0][0]; //x坐标
+                arix[i][1] = pref[0][1]; //y
+                arix[i][2] = pref[0][2]; //z
+            } else if (i == indexResult[1]) {
+                arix[i][0] = pref[1][0]; //x坐标
+                arix[i][1] = pref[1][1]; //y
+                arix[i][2] = pref[1][2]; //z
+            } else if (i == indexResult[2]) {
+                arix[i][0] = pref[2][0]; //x坐标
+                arix[i][1] = pref[2][1]; //y
+                arix[i][2] = pref[2][2]; //z
+            } else {
+                rk[0] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) == null ? 0 : ((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i]));
+                rk[1] = (((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[i])) == null ? 0 : ((int) ((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[i]));
+                rk[2] = (((Map) distanceMap.get(key[indexResult[2]])).get(thirdLineInnerKey[i])) == null ? 0 : ((int) ((Map) distanceMap.get(key[indexResult[2]])).get(thirdLineInnerKey[i]));
+                double[] calculateResult = MatrixUtil.calculateByAngle(i, pref, distance, rk);
+                arix[i][0] = calculateResult[0];
+                arix[i][1] = calculateResult[1];
+                arix[i][2] = calculateResult[2];
+            }
+        }
+        return arix;
+    }
 
     //知道前三个点计算其他点
     public static double[][] calculateOthersPointFrom2(double[][] arix, double[][] mDistanceArray, int[] indexResult, double[][] pref, double[] rk) {
@@ -353,7 +424,7 @@ public class MatrixUtil {
                 rk[0] = mDistanceArray[indexResult[0]][i];
                 rk[1] = mDistanceArray[indexResult[1]][i];
                 rk[2] = mDistanceArray[indexResult[2]][i];
-                double[] calculateResult = MatrixUtil.calculateByAngle(i, pref, distance, rk);
+                double[] calculateResult = MatrixUtil2.calculateByAngle(i, pref, distance, rk);
                 arix[i][0] = calculateResult[0];
                 arix[i][1] = calculateResult[1];
                 arix[i][2] = calculateResult[2];

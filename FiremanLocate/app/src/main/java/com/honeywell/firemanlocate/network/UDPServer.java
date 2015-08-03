@@ -42,6 +42,7 @@ public class UDPServer implements Runnable {
 
     @Override
     public void run() {
+
         DatagramSocket dSocket = null;
         DatagramPacket dPacket = new DatagramPacket(mMessage, mMessage.length);
         try {

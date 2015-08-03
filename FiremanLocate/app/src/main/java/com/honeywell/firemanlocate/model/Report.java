@@ -3,6 +3,7 @@ package com.honeywell.firemanlocate.model;
 import com.honeywell.firemanlocate.util.ByteUtil;
 import com.honeywell.firemanlocate.util.MatrixUtil;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.Map;
 /**
  * Created by lynnliu on 7/8/15.
  */
-public class Report implements IPackage {
+public class Report implements IPackage,Serializable {
 
     private static final int BLOCK_LENGTH = 16;
 
@@ -23,7 +24,7 @@ public class Report implements IPackage {
 
     private DataBlock[] mDataBlocks;
 
-    private Map mDistanceMap = new HashMap(); //存行
+//    private Map mDistanceMap = new HashMap<>(); //存位置关系和距离
 
 //    private Map mDistanceSubMap; //存列
 //
@@ -42,30 +43,29 @@ public class Report implements IPackage {
             System.arraycopy(reportBytes, i * BLOCK_LENGTH + 2, block, 0, 16);
             DataBlock dataBlock = new DataBlock(block);
             mDataBlocks[i] = dataBlock;
-            if (!mDistanceMap.containsKey(dataBlock.getModuleAID())) {
-
-                Map subDistanceMap = new HashMap();
-                subDistanceMap.put(dataBlock.getModuleAID(),0);
-                subDistanceMap.put(dataBlock.getModuleBID(), dataBlock.getDistance());
-                MatrixUtil.mapSort(subDistanceMap); //内部Map排序
-                mDistanceMap.put(dataBlock.getModuleAID(), subDistanceMap);
-                MatrixUtil.mapSort(mDistanceMap);   //最外部Map排序
-            } else {
-                Map subDistance = (Map) mDistanceMap.get(dataBlock.getModuleAID());
-                subDistance.put(dataBlock.getModuleBID(), dataBlock.getDistance());
-                MatrixUtil.mapSort(subDistance);
-            }
+//            if (!mDistanceMap.containsKey(dataBlock.getModuleAID())) {
+//
+//                Map subDistanceMap = new HashMap();
+//                subDistanceMap.put(dataBlock.getModuleAID(),0);
+//                subDistanceMap.put(dataBlock.getModuleBID(), dataBlock.getDistance());
+//                MatrixUtil.mapSort(subDistanceMap); //内部Map排序
+//                mDistanceMap.put(dataBlock.getModuleAID(), subDistanceMap);
+//                MatrixUtil.mapSort(mDistanceMap);   //最外部Map排序
+//            } else {
+//                Map subDistance = (Map) mDistanceMap.get(dataBlock.getModuleAID());
+//                subDistance.put(dataBlock.getModuleBID(), dataBlock.getDistance());
+//                MatrixUtil.mapSort(subDistance);
+//            }
         }
     }
-    //map 按key排序
 
-    public Map getmDistanceMap() {
-        return mDistanceMap;
-    }
-
-    public void setmDistanceMap(Map mDistanceMap) {
-        this.mDistanceMap = mDistanceMap;
-    }
+//    public Map getmDistanceMap() {
+//        return mDistanceMap;
+//    }
+//
+//    public void setmDistanceMap(Map mDistanceMap) {
+//        this.mDistanceMap = mDistanceMap;
+//    }
 
     public boolean isReportValid() {
         return isReportValid;
@@ -124,7 +124,7 @@ public class Report implements IPackage {
 
         private short mModuleBID = 0;
 
-        private short mDistance = 0;
+        private int mDistance = 0;
 
         private byte mBattery = 0;
 
@@ -193,11 +193,11 @@ public class Report implements IPackage {
             mModuleBID = moduleBID;
         }
 
-        public short getDistance() {
+        public int getDistance() {
             return mDistance;
         }
 
-        public void setDistance(short distance) {
+        public void setDistance(int distance) {
             mDistance = distance;
         }
 
