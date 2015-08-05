@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -16,13 +17,13 @@ import android.widget.TextView;
 
 import com.honeywell.firemanlocate.R;
 import com.honeywell.firemanlocate.model.DataType;
+import com.honeywell.firemanlocate.model.DistanceMap;
 import com.honeywell.firemanlocate.model.FiremanPosition;
 import com.honeywell.firemanlocate.model.IPackage;
 import com.honeywell.firemanlocate.model.Report;
 import com.honeywell.firemanlocate.model.TimeACK;
 import com.honeywell.firemanlocate.model.TimeSync;
 import com.honeywell.firemanlocate.service.CalculatePositionService;
-import com.honeywell.firemanlocate.util.MatrixUtil;
 import com.honeywell.firemanlocate.util.MatrixUtil2;
 import com.honeywell.firemanlocate.util.NetworkUtil;
 import com.honeywell.firemanlocate.network.UDPClient;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -58,7 +60,7 @@ public class ShowActivity extends Activity {
 
     private BroadcastReceiver mUpdateReceiver;
 
-    private Map mDistanceMap = new HashMap<>(); //存位置关系和距离
+    private TreeMap mDistanceMap = new TreeMap(); //存位置关系和距离
     private ArrayList<FiremanPosition> mFiremanPositionArrayList = new ArrayList<>();
     private ArrayList<FiremanPosition> mLastFiremanPositionArrayList = null;
 
@@ -81,7 +83,7 @@ public class ShowActivity extends Activity {
     protected void onStart() {
         super.onStart();
 
-        //服务器给到的广播
+//        //服务器给到的广播
         mMessageReceiver = new PackageGotReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(PackageGotReceiver.MSG_RECEIVED_ACTION);
@@ -120,8 +122,10 @@ public class ShowActivity extends Activity {
         mDrawButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = (new ScatterChart(mFiremanPositionArrayList, mLastFiremanPositionArrayList)).execute(ShowActivity.this);
+                DistanceMap.setDistanceMap(mDistanceMap);
+                Intent intent = (new ScatterChart(mFiremanPositionArrayList, mLastFiremanPositionArrayList,mDistanceMap)).execute(ShowActivity.this);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -136,27 +140,21 @@ public class ShowActivity extends Activity {
                     mLogTextView.setText(msg.obj.toString() + mTimeSync.getPrintableString());
                     break;
                 case SERVICE_RESULT:
-                    mFiremanPositionArrayList = MatrixUtil2.calculatePointsPosition(mDistanceMap, mLastFiremanPositionArrayList);
-                    mLastFiremanPositionArrayList = MatrixUtil2.saveFiremanPositionHistory(mFiremanPositionArrayList);
+                    new MyThread().start();
                     break;
                 default:
                     break;
             }
         }
     };
-    private Handler mHandlerUpdateData = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case SEND_RESULT:
-                    mFiremanPositionArrayList = MatrixUtil2.calculatePointsPosition(mDistanceMap, mLastFiremanPositionArrayList);
-                    mLastFiremanPositionArrayList = MatrixUtil2.saveFiremanPositionHistory(mFiremanPositionArrayList);
-                    break;
-                default:
-                    break;
-            }
+
+    public class MyThread extends Thread {
+        public void run() {
+            mFiremanPositionArrayList = MatrixUtil2.calculatePointsPosition(mDistanceMap, mLastFiremanPositionArrayList);
+            mLastFiremanPositionArrayList = MatrixUtil2.saveFiremanPositionHistory(mFiremanPositionArrayList);
         }
-    };
+    }
+
 
     //服务器给到的广播
     public class PackageGotReceiver extends BroadcastReceiver {
@@ -195,12 +193,19 @@ public class ShowActivity extends Activity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            List<Report> mReportList = (ArrayList<Report>) intent.getSerializableExtra(UPDATE_DATA);
-            if (mReportList != null) {
-                Message msg = new Message();
-                msg.what = SERVICE_RESULT;
-                msg.obj = MatrixUtil.parseList(mReportList, mDistanceMap);
-                mHandler.sendMessage(msg);
+            Log.i("hellowlrd", "UpdateReceiver");
+            String action = intent.getAction();
+
+            Log.i("hellowlrd", "action:" + action);
+            if (UPDATE_DRAWVIEW_ACTION.equals(action)) {
+                List<Report> mReportList = (ArrayList<Report>) intent.getSerializableExtra(UPDATE_DATA);
+                Log.i("hellowlrd", "mReportList.size():" + mReportList.size());
+                if (mReportList != null) {
+                    Message msg = new Message();
+                    msg.what = SERVICE_RESULT;
+                    msg.obj = MatrixUtil2.parseList(mReportList, mDistanceMap);
+                    mHandler.sendMessage(msg);
+                }
             }
         }
     }

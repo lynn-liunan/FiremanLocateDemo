@@ -8,11 +8,12 @@ import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.RecoverySystem;
+import android.util.Log;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.honeywell.firemanlocate.activity.ShowActivity;
-import com.honeywell.firemanlocate.activity.TestServiceActivity;
+//import com.honeywell.firemanlocate.activity.TestServiceActivity;
 import com.honeywell.firemanlocate.model.DataType;
 import com.honeywell.firemanlocate.model.IPackage;
 import com.honeywell.firemanlocate.model.Report;
@@ -26,7 +27,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class CalculatePositionService extends Service {
-    private List<IPackage> mReportList = new ArrayList<>();
+    private List<Report> mReportList = new ArrayList<>();
     private Timer timer = new Timer();
     private PackagetReceiver mMessageReceiver;
 
@@ -56,6 +57,7 @@ public class CalculatePositionService extends Service {
     public void onCreate() {
         super.onCreate();
         mContext = this;
+        mMessageReceiver = new PackagetReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(PackagetReceiver.MSG_RECEIVED_ACTION);
         registerReceiver(mMessageReceiver, intentFilter);
@@ -67,14 +69,16 @@ public class CalculatePositionService extends Service {
             @Override
             public void run() {
                 if (mReportList != null && mReportList.size() != 0) {
+                    Log.i("hellowlrd", "sendUpdate broadcast");
+                    Log.i("hellowlrd", "mReportList.size():" + mReportList.size());
                     Intent intent = new Intent();
-                    intent.putExtra(TestServiceActivity.UPDATE_DATA, (Serializable) mReportList);  //告诉activity
+                    intent.putExtra(ShowActivity.UPDATE_DATA, (Serializable) mReportList);  //告诉activity
+                    intent.setAction(ShowActivity.UPDATE_DRAWVIEW_ACTION);
+                    mContext.sendBroadcast(intent);
                     mReportList.clear();
-                    intent.setAction(TestServiceActivity.UPDATE_DRAWVIEW_ACTION);
-                    mContext.getApplicationContext().sendBroadcast(intent);
                 }
             }
-        }, 10 * 1000, 2000);
+        },  1000, 5000);
         return START_STICKY;
     }
 
@@ -99,7 +103,7 @@ public class CalculatePositionService extends Service {
                     break;
                 case REPORT:
                     iPackage = new Report(msgReceived);
-                    mReportList.add(iPackage);
+                    mReportList.add((Report) iPackage);
                     break;
                 default:
                     break;

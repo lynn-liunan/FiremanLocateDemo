@@ -24,6 +24,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -31,9 +32,9 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 
 import com.honeywell.firemanlocate.R;
+import com.honeywell.firemanlocate.model.DistanceMap;
 import com.honeywell.firemanlocate.model.FiremanPosition;
 import com.honeywell.firemanlocate.model.Report;
-import com.honeywell.firemanlocate.util.MatrixUtil;
 import com.honeywell.firemanlocate.util.MatrixUtil2;
 
 import org.achartengine.ChartFactory;
@@ -51,6 +52,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * An activity that encapsulates a graphical view of the chart.
@@ -85,7 +87,7 @@ public class GraphicalActivity extends Activity implements OnClickListener {
 
     private BroadcastReceiver mUpdateReceiver;
 
-    private Map mDistanceMap = new HashMap<>(); //存位置关系和距离
+    private Map mDistanceMap ; //存位置关系和距离
     private ArrayList<FiremanPosition> mFiremanPositionArrayList = new ArrayList<>();
     private ArrayList<FiremanPosition> mLastFiremanPositionArrayList = null;
 
@@ -107,7 +109,9 @@ public class GraphicalActivity extends Activity implements OnClickListener {
 
         Bundle extras = getIntent().getExtras();
         mChart = (AbstractChart) extras.getSerializable(ChartFactory.CHART);
-        mLastFiremanPositionArrayList = (ArrayList) extras.getSerializable(ChartFactory.LastFIREMANPOSITON);
+        mLastFiremanPositionArrayList = (ArrayList) extras.getSerializable(ChartFactory.LASTFIREMANPOSITON);
+      //  mDistanceMap = new TreeMap<Integer, TreeMap>((HashMap<Integer, TreeMap>)extras.getSerializable(ChartFactory.DISTANCEMAP));
+        mDistanceMap = DistanceMap.getDistanceMap();
         mGraphicaView = new GraphicalView(this, mChart);
         String title = extras.getString(ChartFactory.TITLE);
         if (title == null) {
@@ -226,10 +230,11 @@ public class GraphicalActivity extends Activity implements OnClickListener {
         @Override
         public void onReceive(Context context, Intent intent) {
             List<Report> mReportList = (ArrayList<Report>) intent.getSerializableExtra(UPDATE_DATA);
+            Log.i("hellowlrd", "Graphy mReportList size" + mReportList.size());
             if (mReportList != null) {
                 Message msg = new Message();
                 msg.what = SEND_RESULT;
-                msg.obj = MatrixUtil.parseList(mReportList, mDistanceMap);
+                msg.obj = MatrixUtil2.parseList(mReportList, mDistanceMap);
                 mHandlerUpdateData.sendMessage(msg);
             }
         }
@@ -261,7 +266,7 @@ public class GraphicalActivity extends Activity implements OnClickListener {
         }
         XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
         //  XYMultipleSeriesRenderer renderer = buildRenderer(colors, styles);
-        setChartSettings(renderer, "", "X", "Y", -2, 8, -2, 8, Color.WHITE,
+        setChartSettings(renderer, "", "X", "Y", -200, 200, -200, 200, Color.WHITE,
                 Color.WHITE);
         renderer.setPointSize(15);
         renderer.setLabelsTextSize(25);

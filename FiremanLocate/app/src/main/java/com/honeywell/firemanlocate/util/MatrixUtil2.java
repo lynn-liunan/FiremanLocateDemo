@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import Jama.Matrix;
 
@@ -40,23 +41,23 @@ public class MatrixUtil2 {
 
 
     //遍历reportList，封装成distanceMapduixiang
-    public static Map parseList(ArrayList<Report> mReportList, Map mDistanceMap) {
+    public static Map parseList(List<Report> mReportList, Map mDistanceMap) {
 
         for (int j = 0; j < mReportList.size(); j++) {
             IPackage iPackage = mReportList.get(j);
             for (int i = 0; i < ((Report) iPackage).getDataBlocks().length; i++) {
                 if (!mDistanceMap.containsKey(((Report) iPackage).getDataBlocks()[i].getModuleAID())) {
 
-                    Map subDistanceMap = new HashMap();
+                    Map subDistanceMap = new TreeMap();
                     subDistanceMap.put(((Report) iPackage).getDataBlocks()[i].getModuleAID(), 0);
-                    subDistanceMap.put(((Report) iPackage).getDataBlocks()[i].getModuleBID(), ((Report) iPackage).getDataBlocks()[i].getDistance());
-                    MatrixUtil.mapSort(subDistanceMap); //内部Map排序
+                    subDistanceMap.put(((Report) iPackage).getDataBlocks()[i].getModuleBID(), (((Report) iPackage).getDataBlocks()[i].getDistance()) / 100);
+//                    MatrixUtil.mapSort(subDistanceMap); //内部Map排序
                     mDistanceMap.put(((Report) iPackage).getDataBlocks()[i].getModuleAID(), subDistanceMap);
-                    MatrixUtil.mapSort(mDistanceMap);   //最外部Map排序
+//                    MatrixUtil.mapSort(mDistanceMap);   //最外部Map排序
                 } else {
                     Map subDistance = (Map) mDistanceMap.get(((Report) iPackage).getDataBlocks()[i].getModuleAID());
-                    subDistance.put(((Report) iPackage).getDataBlocks()[i].getModuleBID(), ((Report) iPackage).getDataBlocks()[i].getDistance());
-                    MatrixUtil.mapSort(subDistance);
+                    subDistance.put(((Report) iPackage).getDataBlocks()[i].getModuleBID(), (((Report) iPackage).getDataBlocks()[i].getDistance()) / 100);
+//                    MatrixUtil.mapSort(subDistance);
                 }
             }
         }
@@ -86,7 +87,7 @@ public class MatrixUtil2 {
         pref = calculateThreePoint2(mDistanceMap, indexResult, pref, mLastFiremanPositionArrayList, roataTheta); //确定前三个点坐标
         //   arix = MatrixUtil.calculateOthersPointFrom2(arix, mDistanceArray, indexResult, pref, rk); //计算其他点坐标
         arix = calculateOthersPointFrom(arix, mDistanceMap, indexResult, pref, rk); //计算其他点坐标
-        arix = MatrixUtil.transferAxis(arix, roataTheta);  //最后一次旋转，算出旋转坐标
+        arix = transferAxis(arix, roataTheta);  //最后一次旋转，算出旋转坐标
         //将坐标换为对象
         for (int i = 0; i < arix.length; i++) {
             Log.i("arix :", "arix" + i + " x: " + arix[i][0]);
@@ -173,7 +174,7 @@ public class MatrixUtil2 {
         int third_index = 0;
         Object[] key = distanceMap.keySet().toArray();
         Object[] firstLineInnerKey = ((Map) distanceMap.get(key[0])).keySet().toArray();  //第一行key
-        Object[] maxLineInnerKey = ((Map) distanceMap.get(key[max_index])).keySet().toArray(); //最大行key
+
 
         double theta = 0.0;
         for (int i = 0; i < ((Map) distanceMap.get(key[0])).size(); i++) {
@@ -182,14 +183,41 @@ public class MatrixUtil2 {
                 max_index = i;
             }
         }
+        int max_index_real = 0;
+        if (key.length <= max_index) {
+            max_index = key.length - 1;
+        }
+        Object[] maxLineInnerKey = ((Map) distanceMap.get(key[max_index])).keySet().toArray(); //最大行key
+
+//        theta = Math.acos(
+//                (Math.pow(distanceArray[0][i], 2) + Math.pow(distanceArray[max_index][i], 2) - Math.pow(distanceArray[0][max_index], 2))
+//                / (2 * distanceArray[0][i] * distanceArray[max_index][i])
+//        );
         for (int i = 0; i < ((Map) distanceMap.get(key[0])).size(); i++) {
-            theta = Math.acos((Math.pow(((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])), 2)
-                    + Math.pow(((int) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i])), 2) - Math.pow(((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[max_index])), 2))
-                    / (2 * ((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) * ((int) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i]))));
-            if (((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) != max_data1 && (((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i]))
-                    + ((int) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i])) > max_data2)
+            Integer d1 = ((Integer) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i]));
+            Integer d2 = 0;
+            if (i < ((Map) distanceMap.get(key[max_index])).size()) {
+                d2 = ((Integer) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i]));
+            }
+            // Integer d2 = ((Integer) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i]));
+            Integer d3 = ((Integer) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[max_index]));
+            theta = Math.acos(
+                    (
+
+
+                            Math.pow(d1 != null ? d1 : 0, 2)
+                                    + Math.pow(d2 != null ? d2 : 0, 2)
+                                    - Math.pow(d3 != null ? d3 : 0, 2)
+                    )
+                            / (2 *
+                            (d1 != null ? d1 : 0)
+                            * (d2 != null ? d2 : 0)
+                    )
+            );
+            if (d1 != max_data1 && (d1
+                    + d2 > max_data2)
                     && theta >= 0.52 && theta <= 2.09) {
-                max_data2 = ((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) + ((int) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i]));
+                max_data2 = d1 + d2;
                 third_index = i;
             }
 
@@ -299,14 +327,14 @@ public class MatrixUtil2 {
         pref[0][1] = 0;
         pref[0][2] = 0.0;
         //第二个点坐标
-        pref[1][0] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]])) == null ? 0 : ((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]]));
+        pref[1][0] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]])) == null ? 0 : ((Integer) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]]));
         pref[1][1] = 0;
         pref[1][2] = 0.0;
 //        double distance12, double round1, double round2
         double distance12 = pref[1][0];
-        double round1 = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]])) == null ? 0 : ((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]]));
-        double round2 = (((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]])) == null ? 0 : ((int) ((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]]));
-        pref = MatrixUtil.calculate3rdPointFrom2(pref,  //第三个点坐标
+        double round1 = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]])) == null ? 0 : ((Integer) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]]));
+        double round2 = (((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]])) == null ? 0 : ((Integer) ((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]]));
+        pref = calculate3rdPointFrom2(pref,  //第三个点坐标
                 distance12, round1,
                 round2, mLastFiremanPositionArrayList, roataTheta);
         return pref;
@@ -351,6 +379,7 @@ public class MatrixUtil2 {
         if (mLastFiremanPositionArrayList == null) {
             return 0.0;
         } else {
+            if (mLastFiremanPositionArrayList.size() < indexResult[1]) return 0.0;
             double theta = Math.atan(
                     (mLastFiremanPositionArrayList.get(indexResult[1]).getY() - mLastFiremanPositionArrayList.get(indexResult[0]).getY())
                             / (mLastFiremanPositionArrayList.get(indexResult[1]).getX() - mLastFiremanPositionArrayList.get(indexResult[0]).getX())
@@ -372,10 +401,10 @@ public class MatrixUtil2 {
         Object[] maxLineInnerKey = ((Map) distanceMap.get(key[indexResult[1]])).keySet().toArray(); //最大行key
         Object[] thirdLineInnerKey = ((Map) distanceMap.get(key[indexResult[2]])).keySet().toArray(); //第三个点 行key
         double[] distance = new double[3];
-        distance[0] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]])) == null ? 0 : ((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]]));              //01 and 02
-        distance[1] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]])) == null ? 0 : ((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]]));             //02 and 03;
-        distance[2] = (((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]])) == null ? 0 : ((int) ((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]])); //03 and 01
-        for (int i = 0; i < 7; i++) {
+        distance[0] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]])) == null ? 0 : ((Integer) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[1]]));              //01 and 02
+        distance[1] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]])) == null ? 0 : ((Integer) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[indexResult[2]]));             //02 and 03;
+        distance[2] = (((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]])) == null ? 0 : ((Integer) ((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]])); //03 and 01
+        for (int i = 0; i < arix.length; i++) {
 
             if (i == indexResult[0]) {
                 arix[i][0] = pref[0][0]; //x坐标
@@ -390,10 +419,23 @@ public class MatrixUtil2 {
                 arix[i][1] = pref[2][1]; //y
                 arix[i][2] = pref[2][2]; //z
             } else {
-                rk[0] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) == null ? 0 : ((int) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i]));
-                rk[1] = (((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[i])) == null ? 0 : ((int) ((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[i]));
-                rk[2] = (((Map) distanceMap.get(key[indexResult[2]])).get(thirdLineInnerKey[i])) == null ? 0 : ((int) ((Map) distanceMap.get(key[indexResult[2]])).get(thirdLineInnerKey[i]));
-                double[] calculateResult = MatrixUtil.calculateByAngle(i, pref, distance, rk);
+                if (i < firstLineInnerKey.length) {
+                    rk[0] = (((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) == null ? 0 : ((Integer) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i]));
+                } else {
+                    rk[0] = 0;
+                }
+                if (i < maxLineInnerKey.length) {
+                    rk[1] = (((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[i])) == null ? 0 : ((Integer) ((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[i]));
+                } else {
+                    rk[1] = 0;
+                }
+                if (i < thirdLineInnerKey.length) {
+                    rk[2] = (((Map) distanceMap.get(key[indexResult[2]])).get(thirdLineInnerKey[i])) == null ? 0 : ((Integer) ((Map) distanceMap.get(key[indexResult[2]])).get(thirdLineInnerKey[i]));
+                } else {
+                    rk[2] = 0;
+                }
+
+                double[] calculateResult = calculateByAngle(i, pref, distance, rk);
                 arix[i][0] = calculateResult[0];
                 arix[i][1] = calculateResult[1];
                 arix[i][2] = calculateResult[2];
@@ -403,37 +445,37 @@ public class MatrixUtil2 {
     }
 
     //知道前三个点计算其他点
-    public static double[][] calculateOthersPointFrom2(double[][] arix, double[][] mDistanceArray, int[] indexResult, double[][] pref, double[] rk) {
-        double[] distance = new double[3];
-        distance[0] = mDistanceArray[0][indexResult[1]];              //01 and 02
-        distance[1] = mDistanceArray[0][indexResult[2]];              //02 and 03;
-        distance[2] = mDistanceArray[indexResult[1]][indexResult[2]]; //03 and 01
-        for (int i = 0; i < 7; i++) {
-
-            if (i == indexResult[0]) {
-                arix[i][0] = pref[0][0]; //x坐标
-                arix[i][1] = pref[0][1]; //y
-                arix[i][2] = pref[0][2]; //z
-            } else if (i == indexResult[1]) {
-                arix[i][0] = pref[1][0]; //x坐标
-                arix[i][1] = pref[1][1]; //y
-                arix[i][2] = pref[1][2]; //z
-            } else if (i == indexResult[2]) {
-                arix[i][0] = pref[2][0]; //x坐标
-                arix[i][1] = pref[2][1]; //y
-                arix[i][2] = pref[2][2]; //z
-            } else {
-                rk[0] = mDistanceArray[indexResult[0]][i];
-                rk[1] = mDistanceArray[indexResult[1]][i];
-                rk[2] = mDistanceArray[indexResult[2]][i];
-                double[] calculateResult = MatrixUtil2.calculateByAngle(i, pref, distance, rk);
-                arix[i][0] = calculateResult[0];
-                arix[i][1] = calculateResult[1];
-                arix[i][2] = calculateResult[2];
-            }
-        }
-        return arix;
-    }
+//    public static double[][] calculateOthersPointFrom2(double[][] arix, double[][] mDistanceArray, int[] indexResult, double[][] pref, double[] rk) {
+//        double[] distance = new double[3];
+//        distance[0] = mDistanceArray[0][indexResult[1]];              //01 and 02
+//        distance[1] = mDistanceArray[0][indexResult[2]];              //02 and 03;
+//        distance[2] = mDistanceArray[indexResult[1]][indexResult[2]]; //03 and 01
+//        for (int i = 0; i < 7; i++) {
+//
+//            if (i == indexResult[0]) {
+//                arix[i][0] = pref[0][0]; //x坐标
+//                arix[i][1] = pref[0][1]; //y
+//                arix[i][2] = pref[0][2]; //z
+//            } else if (i == indexResult[1]) {
+//                arix[i][0] = pref[1][0]; //x坐标
+//                arix[i][1] = pref[1][1]; //y
+//                arix[i][2] = pref[1][2]; //z
+//            } else if (i == indexResult[2]) {
+//                arix[i][0] = pref[2][0]; //x坐标
+//                arix[i][1] = pref[2][1]; //y
+//                arix[i][2] = pref[2][2]; //z
+//            } else {
+//                rk[0] = mDistanceArray[indexResult[0]][i];
+//                rk[1] = mDistanceArray[indexResult[1]][i];
+//                rk[2] = mDistanceArray[indexResult[2]][i];
+//                double[] calculateResult = MatrixUtil2.calculateByAngle(i, pref, distance, rk);
+//                arix[i][0] = calculateResult[0];
+//                arix[i][1] = calculateResult[1];
+//                arix[i][2] = calculateResult[2];
+//            }
+//        }
+//        return arix;
+//    }
 
     //计算map按key值排序
     public static Map mapSort(Map map) {

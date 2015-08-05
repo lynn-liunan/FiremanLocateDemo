@@ -1,7 +1,7 @@
 package com.honeywell.firemanlocate.model;
 
 import com.honeywell.firemanlocate.util.ByteUtil;
-import com.honeywell.firemanlocate.util.MatrixUtil;
+
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -112,7 +112,7 @@ public class Report implements IPackage,Serializable {
         return printStr;
     }
 
-    public class DataBlock implements IPackage {
+    public class DataBlock implements IPackage ,Serializable{
 
         private short mSequenceNumber = 0;
 
@@ -120,9 +120,9 @@ public class Report implements IPackage,Serializable {
 
         private short mTimeMilliseconds = 0;
 
-        private short mModuleAID = 0;
+        private int mModuleAID = 0;
 
-        private short mModuleBID = 0;
+        private int mModuleBID = 0;
 
         private int mDistance = 0;
 
@@ -177,7 +177,7 @@ public class Report implements IPackage,Serializable {
             mTimeMilliseconds = timeMilliseconds;
         }
 
-        public short getModuleAID() {
+        public int getModuleAID() {
             return mModuleAID;
         }
 
@@ -185,7 +185,7 @@ public class Report implements IPackage,Serializable {
             mModuleAID = moduleAID;
         }
 
-        public short getModuleBID() {
+        public int getModuleBID() {
             return mModuleBID;
         }
 

@@ -2,10 +2,12 @@ package com.honeywell.firemanlocate.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
+
 /**
  * Created by lynn.liu on 6/18/15.
  */
-public class FiremanPosition implements Cloneable {
+public class FiremanPosition implements Cloneable,Serializable {
 
     protected double mX;
     protected double mY;

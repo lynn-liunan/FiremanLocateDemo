@@ -29,6 +29,8 @@ import org.achartengine.renderer.DefaultRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Utility methods for creating chart views or intents.
@@ -42,7 +44,9 @@ public class ChartFactory {
     /**
      * The key for the lastFiremanPosition data
      */
-    public static final String LastFIREMANPOSITON = "lastFiremanPosition";
+    public static final String LASTFIREMANPOSITON = "lastFiremanPosition";
+
+    public static final String DISTANCEMAP = "distancemap";
 
     /**
      * The key for the chart graphical activity title.
@@ -84,13 +88,15 @@ public class ChartFactory {
      *                                  series
      */
     public static final Intent getScatterChartIntent(Context context,
-                                                     XYMultipleSeriesDataset dataset, XYMultipleSeriesRenderer renderer, ArrayList<FiremanPosition> lastFiremanPosition) {
-        return getScatterChartIntent(context, dataset, renderer, "", lastFiremanPosition);
+                                                     XYMultipleSeriesDataset dataset, XYMultipleSeriesRenderer renderer, ArrayList<FiremanPosition> lastFiremanPosition,TreeMap distanceMap) {
+        return getScatterChartIntent(context, dataset, renderer, "", lastFiremanPosition,distanceMap);
     }
+
     public static final Intent getScatterChartIntent(Context context,
                                                      XYMultipleSeriesDataset dataset, XYMultipleSeriesRenderer renderer) {
         return getScatterChartIntent(context, dataset, renderer, "");
     }
+
     /**
      * Creates a scatter chart intent that can be used to start the graphical view
      * activity.
@@ -105,15 +111,18 @@ public class ChartFactory {
      *                                  series
      */
     public static final Intent getScatterChartIntent(Context context,
-                                                     XYMultipleSeriesDataset dataset, XYMultipleSeriesRenderer renderer, String activityTitle, ArrayList<FiremanPosition> lastFiremanPosition) {
+                                                     XYMultipleSeriesDataset dataset, XYMultipleSeriesRenderer renderer, String activityTitle,
+                                                     ArrayList<FiremanPosition> lastFiremanPosition, TreeMap distanceMap) {
         checkParameters(dataset, renderer);
         Intent intent = new Intent(context, GraphicalActivity.class);
         XYChart chart = new ScatterChart(dataset, renderer);
         intent.putExtra(CHART, chart);
-        intent.putExtra(LastFIREMANPOSITON, lastFiremanPosition);
+        intent.putExtra(LASTFIREMANPOSITON, lastFiremanPosition);
+        intent.putExtra(DISTANCEMAP, distanceMap);
         intent.putExtra(TITLE, activityTitle);
         return intent;
     }
+
     public static final Intent getScatterChartIntent(Context context,
                                                      XYMultipleSeriesDataset dataset, XYMultipleSeriesRenderer renderer, String activityTitle) {
         checkParameters(dataset, renderer);
@@ -123,6 +132,7 @@ public class ChartFactory {
         intent.putExtra(TITLE, activityTitle);
         return intent;
     }
+
     /**
      * Checks the validity of the dataset and renderer parameters.
      *
