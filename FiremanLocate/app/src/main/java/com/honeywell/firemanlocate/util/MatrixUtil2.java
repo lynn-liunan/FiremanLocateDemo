@@ -379,7 +379,7 @@ public class MatrixUtil2 {
         if (mLastFiremanPositionArrayList == null) {
             return 0.0;
         } else {
-            if (mLastFiremanPositionArrayList.size() < indexResult[1]) return 0.0;
+            if (mLastFiremanPositionArrayList.size() <= indexResult[1]) return 0.0;
             double theta = Math.atan(
                     (mLastFiremanPositionArrayList.get(indexResult[1]).getY() - mLastFiremanPositionArrayList.get(indexResult[0]).getY())
                             / (mLastFiremanPositionArrayList.get(indexResult[1]).getX() - mLastFiremanPositionArrayList.get(indexResult[0]).getX())

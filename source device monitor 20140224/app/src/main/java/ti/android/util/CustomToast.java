@@ -12,7 +12,7 @@
   Software unless you agree to abide by the terms of the License. 
   The License limits your use, and you acknowledge, that the Software may not be 
   modified, copied or distributed unless used solely and exclusively in conjunction 
-  with a Texas Instruments Bluetooth® device. Other than for the foregoing purpose, 
+  with a Texas Instruments Bluetoothï¿½ device. Other than for the foregoing purpose, 
   you may not use, reproduce, copy, prepare derivative works of, modify, distribute, 
   perform, display or sell this Software and/or its documentation for any purpose.
  

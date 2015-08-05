@@ -35,7 +35,12 @@ import com.honeywell.firemanlocate.R;
 import com.honeywell.firemanlocate.model.DistanceMap;
 import com.honeywell.firemanlocate.model.FiremanPosition;
 import com.honeywell.firemanlocate.model.Report;
+import com.honeywell.firemanlocate.model.TimeSync;
+import com.honeywell.firemanlocate.network.UDPClient;
+import com.honeywell.firemanlocate.network.UDPServer;
+import com.honeywell.firemanlocate.service.CalculatePositionService;
 import com.honeywell.firemanlocate.util.MatrixUtil2;
+import com.honeywell.firemanlocate.util.NetworkUtil;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
@@ -53,6 +58,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * An activity that encapsulates a graphical view of the chart.
@@ -83,11 +90,11 @@ public class GraphicalActivity extends Activity implements OnClickListener {
 
     //menu button
     private ImageButton mSwitchXYButton;
-
+    private TimeSync mTimeSync;
 
     private BroadcastReceiver mUpdateReceiver;
 
-    private Map mDistanceMap ; //存位置关系和距离
+    private Map mDistanceMap = new TreeMap(); //存位置关系和距离
     private ArrayList<FiremanPosition> mFiremanPositionArrayList = new ArrayList<>();
     private ArrayList<FiremanPosition> mLastFiremanPositionArrayList = null;
 
@@ -107,22 +114,25 @@ public class GraphicalActivity extends Activity implements OnClickListener {
         mZoom1Button.setOnClickListener(this);
         mSwitchXYButton.setOnClickListener(this);
 
-        Bundle extras = getIntent().getExtras();
-        mChart = (AbstractChart) extras.getSerializable(ChartFactory.CHART);
-        mLastFiremanPositionArrayList = (ArrayList) extras.getSerializable(ChartFactory.LASTFIREMANPOSITON);
-      //  mDistanceMap = new TreeMap<Integer, TreeMap>((HashMap<Integer, TreeMap>)extras.getSerializable(ChartFactory.DISTANCEMAP));
-        mDistanceMap = DistanceMap.getDistanceMap();
-        mGraphicaView = new GraphicalView(this, mChart);
-        String title = extras.getString(ChartFactory.TITLE);
-        if (title == null) {
-            requestWindowFeature(Window.FEATURE_NO_TITLE);
-        } else if (title.length() > 0) {
-            setTitle(title);
-        }
-        mGraphicaView.setScaleX(0.01f);
-        mGraphicaView.setScaleY(0.01f);
-        mGraphicalPanel.addView(mGraphicaView);
-        mGraphicaView.invalidate();
+        Intent intent = new Intent(GraphicalActivity.this, CalculatePositionService.class);
+        startService(intent);  //主入口启动数据接受service
+
+//        Bundle extras = getIntent().getExtras();
+//        mChart = (AbstractChart) extras.getSerializable(ChartFactory.CHART);
+//        mLastFiremanPositionArrayList = (ArrayList) extras.getSerializable(ChartFactory.LASTFIREMANPOSITON);
+        //  mDistanceMap = new TreeMap<Integer, TreeMap>((HashMap<Integer, TreeMap>)extras.getSerializable(ChartFactory.DISTANCEMAP));
+//        mDistanceMap = DistanceMap.getDistanceMap();
+//        mGraphicaView = new GraphicalView(this, mChart);
+////        String title = extras.getString(ChartFactory.TITLE);
+////        if (title == null) {
+//            requestWindowFeature(Window.FEATURE_NO_TITLE);
+////        } else if (title.length() > 0) {
+////            setTitle(title);
+////        }
+//        mGraphicaView.setScaleX(0.01f);
+//        mGraphicaView.setScaleY(0.01f);
+//        mGraphicalPanel.addView(mGraphicaView);
+//        mGraphicaView.invalidate();
     }
 
     @Override
@@ -133,6 +143,21 @@ public class GraphicalActivity extends Activity implements OnClickListener {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(UPDATE_DRAWVIEW_ACTION);
         registerReceiver(mUpdateReceiver, intentFilter);
+
+        ExecutorService exec = Executors.newCachedThreadPool();
+        UDPServer server = new UDPServer(this);
+        exec.execute(server);
+
+//        new Thread() {
+//
+//            @Override
+//            public void run() {
+//                mTimeSync = new TimeSync();
+//                UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(GraphicalActivity
+//                        .this), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
+//            }
+//
+//        }.start();
 
     }
 
@@ -210,6 +235,7 @@ public class GraphicalActivity extends Activity implements OnClickListener {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case SEND_RESULT:
+//                    new MyThread().start();
                     mFiremanPositionArrayList = MatrixUtil2.calculatePointsPosition(mDistanceMap, mLastFiremanPositionArrayList);
                     mLastFiremanPositionArrayList = MatrixUtil2.saveFiremanPositionHistory(mFiremanPositionArrayList);
                     mGraphicalPanel.removeView(mGraphicaView);
@@ -218,12 +244,24 @@ public class GraphicalActivity extends Activity implements OnClickListener {
                     mChart = newChart;
                     mGraphicalPanel.addView(mGraphicaView);
                     break;
+
                 default:
                     break;
             }
         }
     };
 
+    //    public class MyThread extends Thread {
+//        public void run() {
+//            mFiremanPositionArrayList = MatrixUtil2.calculatePointsPosition(mDistanceMap, mLastFiremanPositionArrayList);
+//            mLastFiremanPositionArrayList = MatrixUtil2.saveFiremanPositionHistory(mFiremanPositionArrayList);
+//            mGraphicalPanel.removeView(mGraphicaView);
+//            AbstractChart newChart = repeatGraphicaView();
+//            mGraphicaView = new GraphicalView(GraphicalActivity.this, newChart);
+//            mChart = newChart;
+//            mGraphicalPanel.addView(mGraphicaView);
+//        }
+//    }
     //service给到的广播
     private class UpdateViewReceiver extends BroadcastReceiver {
 

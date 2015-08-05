@@ -100,8 +100,11 @@ public class CalculatePositionService extends Service {
             switch (DataType.values()[msgReceived[0] - 1]) {
                 case TIME_ACK:
                     iPackage = new TimeACK(msgReceived);
+                    int moduleID = ((TimeACK)iPackage).getModuleID();
+                    Log.i("PackageReceiver","moduleID:"+moduleID);
                     break;
                 case REPORT:
+                    Log.i("PackageReceiver","REPORT------");
                     iPackage = new Report(msgReceived);
                     mReportList.add((Report) iPackage);
                     break;
