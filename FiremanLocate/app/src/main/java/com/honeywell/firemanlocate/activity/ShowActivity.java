@@ -89,10 +89,10 @@ public class ShowActivity extends Activity {
         intentFilter.addAction(PackageGotReceiver.MSG_RECEIVED_ACTION);
         registerReceiver(mMessageReceiver, intentFilter);
         //service 给到的广播
-        mUpdateReceiver = new UpdateViewReceiver();
-        IntentFilter intentFilter2 = new IntentFilter();
-        intentFilter2.addAction(UPDATE_DRAWVIEW_ACTION);
-        registerReceiver(mUpdateReceiver, intentFilter2);
+//        mUpdateReceiver = new UpdateViewReceiver();
+//        IntentFilter intentFilter2 = new IntentFilter();
+//        intentFilter2.addAction(UPDATE_DRAWVIEW_ACTION);
+//        registerReceiver(mUpdateReceiver, intentFilter2);
 
         ExecutorService exec = Executors.newCachedThreadPool();
         UDPServer server = new UDPServer(this);

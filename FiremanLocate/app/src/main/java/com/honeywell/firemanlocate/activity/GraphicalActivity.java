@@ -304,7 +304,7 @@ public class GraphicalActivity extends Activity implements OnClickListener {
         }
         XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
         //  XYMultipleSeriesRenderer renderer = buildRenderer(colors, styles);
-        setChartSettings(renderer, "", "X", "Y", -200, 200, -200, 200, Color.WHITE,
+        setChartSettings(renderer, "", "X", "Y", -10, 10, -10, 10, Color.WHITE,
                 Color.WHITE);
         renderer.setPointSize(15);
         renderer.setLabelsTextSize(25);
