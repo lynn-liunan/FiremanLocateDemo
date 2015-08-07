@@ -148,16 +148,16 @@ public class GraphicalActivity extends Activity implements OnClickListener {
         UDPServer server = new UDPServer(this);
         exec.execute(server);
 
-//        new Thread() {
-//
-//            @Override
-//            public void run() {
-//                mTimeSync = new TimeSync();
-//                UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(GraphicalActivity
-//                        .this), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
-//            }
-//
-//        }.start();
+        new Thread() {
+
+            @Override
+            public void run() {
+                mTimeSync = new TimeSync();
+                UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(GraphicalActivity
+                        .this), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
+            }
+
+        }.start();
 
     }
 

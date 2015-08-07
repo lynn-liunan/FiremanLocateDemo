@@ -69,8 +69,8 @@ public class CalculatePositionService extends Service {
             @Override
             public void run() {
                 if (mReportList != null && mReportList.size() != 0) {
-                    Log.i("hellowlrd", "sendUpdate broadcast");
-                    Log.i("hellowlrd", "mReportList.size():" + mReportList.size());
+//                    Log.i("roataTheta", "sendUpdate broadcast"+mReportList.size());
+                    Log.i("roataTheta", "mReportList.size(): " + mReportList.size());
                     Intent intent = new Intent();
                     intent.putExtra(ShowActivity.UPDATE_DATA, (Serializable) mReportList);  //告诉activity
                     intent.setAction(ShowActivity.UPDATE_DRAWVIEW_ACTION);
@@ -78,7 +78,7 @@ public class CalculatePositionService extends Service {
                     mReportList.clear();
                 }
             }
-        },  1000, 5000);
+        },  2000, 1000);
         return START_STICKY;
     }
 

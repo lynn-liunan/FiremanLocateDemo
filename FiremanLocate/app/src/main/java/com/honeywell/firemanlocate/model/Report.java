@@ -124,7 +124,7 @@ public class Report implements IPackage,Serializable {
 
         private int mModuleBID = 0;
 
-        private int mDistance = 0;
+        private float mDistance = 0;
 
         private byte mBattery = 0;
 
@@ -193,7 +193,7 @@ public class Report implements IPackage,Serializable {
             mModuleBID = moduleBID;
         }
 
-        public int getDistance() {
+        public float getDistance() {
             return mDistance;
         }
 
