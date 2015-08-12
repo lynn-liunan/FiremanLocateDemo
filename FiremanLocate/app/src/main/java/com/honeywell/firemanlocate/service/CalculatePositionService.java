@@ -1,5 +1,6 @@
 package com.honeywell.firemanlocate.service;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -18,18 +19,25 @@ import com.honeywell.firemanlocate.model.DataType;
 import com.honeywell.firemanlocate.model.IPackage;
 import com.honeywell.firemanlocate.model.Report;
 import com.honeywell.firemanlocate.model.TimeACK;
+import com.honeywell.firemanlocate.model.TimeSync;
+import com.honeywell.firemanlocate.network.UDPClient;
 import com.honeywell.firemanlocate.network.UDPServer;
+import com.honeywell.firemanlocate.util.NetworkUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class CalculatePositionService extends Service {
+    private final String TAG = "CalculateService";
     private List<Report> mReportList = new ArrayList<>();
     private Timer timer = new Timer();
     private PackagetReceiver mMessageReceiver;
+    private TimeSync mTimeSync;
 
     public CalculatePositionService() {
     }
@@ -61,6 +69,20 @@ public class CalculatePositionService extends Service {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(PackagetReceiver.MSG_RECEIVED_ACTION);
         registerReceiver(mMessageReceiver, intentFilter);
+
+        new Thread() {
+
+            @Override
+            public void run() {
+                mTimeSync = new TimeSync();
+                String address = NetworkUtil.getIPAddress(mContext);
+                Log.i(TAG,"address: "+address);
+                UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(mContext
+                        ), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
+                if (!mReportList.isEmpty()) mReportList.clear();
+            }
+
+        }.start();
     }
 
     @Override
@@ -78,7 +100,7 @@ public class CalculatePositionService extends Service {
                     mReportList.clear();
                 }
             }
-        },  2000, 1000);
+        },  5000, 600);
         return START_STICKY;
     }
 

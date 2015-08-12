@@ -11,7 +11,7 @@ public class FiremanPosition implements Cloneable,Serializable {
 
     protected double mX;
     protected double mY;
-    protected int mIndex;
+    protected String mIndex;
     protected double mZ;
 
     public FiremanPosition() {
@@ -22,7 +22,7 @@ public class FiremanPosition implements Cloneable,Serializable {
         mY = y;
     }
 
-    public FiremanPosition(double mX, double mY, int mIndex) {
+    public FiremanPosition(double mX, double mY, String mIndex) {
         this.mIndex = mIndex;
         this.mY = mY;
         this.mX = mX;
@@ -31,6 +31,12 @@ public class FiremanPosition implements Cloneable,Serializable {
         this.mZ = mZ;
         this.mY = mY;
         this.mX = mX;
+    }
+    public FiremanPosition(double mX, double mY, double mZ,String mIndex) {
+        this.mZ = mZ;
+        this.mY = mY;
+        this.mX = mX;
+        this.mIndex = mIndex;
     }
     @Override
     public FiremanPosition clone() {
@@ -61,11 +67,11 @@ public class FiremanPosition implements Cloneable,Serializable {
         return mY;
     }
 
-    public int getmIndex() {
+    public String getmIndex() {
         return mIndex;
     }
 
-    public void setmIndex(int mIndex) {
+    public void setmIndex(String mIndex) {
         this.mIndex = mIndex;
     }
 

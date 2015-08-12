@@ -2,12 +2,14 @@ package com.honeywell.firemanlocate.network;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import com.honeywell.firemanlocate.activity.ShowActivity;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
 
 /**
@@ -42,22 +44,41 @@ public class UDPServer implements Runnable {
 
     @Override
     public void run() {
-
+        Log.i("CalculateService","UDPServer run");
         DatagramSocket dSocket = null;
         DatagramPacket dPacket = new DatagramPacket(mMessage, mMessage.length);
+        Log.i("CalculateService","UDPServer run2222");
+
         try {
-            dSocket = new DatagramSocket(PORT);
+//            dSocket = new DatagramSocket(PORT);
+            if(dSocket==null){
+                dSocket = new DatagramSocket(null);
+                dSocket.setReuseAddress(true);
+                dSocket.bind(new InetSocketAddress(PORT));
+            }
+            Log.i("CalculateService","UDPServer run33333");
+
             while (mLife) {
+                Log.i("CalculateService","UDPServer run4444");
+
                 try {
-                    dSocket.receive(dPacket);
+                    try {
+                        dSocket.receive(dPacket);
+                    }catch (Exception ex){
+                        Log.i("CalculateService","ex:"+ex);
+                    }
+                    Log.i("CalculateService", "UDPServer run5555");
+                    Log.i("CalculateService","dPacket.getData(): "+dPacket.getData());
                     if (dPacket.getData() != null && dPacket.getData().length > 0) {
                         Intent intent = new Intent();
                         intent.putExtra(UDP_MSG_RECEIVED, dPacket.getData());
-                        intent.setAction(ShowActivity.PackageGotReceiver.MSG_RECEIVED_ACTION);
+                        intent.setAction(ShowActivity.MSG_RECEIVED_ACTION);
                         mContext.getApplicationContext().sendBroadcast(intent);
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+                }catch(Exception ee){
+
                 }
             }
         } catch (SocketException e) {

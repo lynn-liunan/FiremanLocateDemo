@@ -175,9 +175,11 @@ public abstract class XYChart extends AbstractChart {
             maxScaleNumber = Math.max(maxScaleNumber, mDataset.getSeriesAt(i).getScaleNumber());
         }
         maxScaleNumber++;
+
         if (maxScaleNumber < 0) {
             return;
         }
+
         double[] minX = new double[maxScaleNumber];
         double[] maxX = new double[maxScaleNumber];
         double[] minY = new double[maxScaleNumber];
@@ -249,8 +251,10 @@ public abstract class XYChart extends AbstractChart {
         // 1) Avoid a large contiguous memory allocation
         // 2) We don't need random seeking, only sequential reading/writing, so
         // linked list makes sense
+
         clickableAreas = new HashMap<Integer, List<ClickableArea>>();
         for (int i = 0; i < sLength; i++) {
+
             XYSeries series = mDataset.getSeriesAt(i);
             int scale = series.getScaleNumber();
             if (series.getItemCount() == 0) {
@@ -258,6 +262,7 @@ public abstract class XYChart extends AbstractChart {
             }
 
             hasValues = true;
+
             XYSeriesRenderer seriesRenderer = (XYSeriesRenderer) mRenderer.getSeriesRendererAt(i);
 
             // int originalValuesLength = series.getItemCount();

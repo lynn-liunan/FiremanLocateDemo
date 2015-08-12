@@ -15,14 +15,14 @@
         android:gravity="top"
         android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/start_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_weight="1"
-            android:text="@string/start"
-            android:textSize="30sp" />
+        <!--<Button-->
+            <!--android:id="@+id/start_button"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_marginTop="10dp"-->
+            <!--android:layout_weight="1"-->
+            <!--android:text="@string/start"-->
+            <!--android:textSize="30sp" />-->
 
         <Button
             android:id="@+id/draw_position"

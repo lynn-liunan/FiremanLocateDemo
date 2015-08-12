@@ -73,7 +73,7 @@ public class GraphicalActivity extends Activity implements OnClickListener {
     public static final String send_parameter = "draw_pramater";
     public static final String UPDATE_DATA = "update_data";
     private static final int SEND_RESULT = 11;
-    private int[] mColorsArray = {Color.RED, Color.RED, Color.RED, Color.RED, Color.RED, Color
+    private int[] mColorsArray = {Color.GREEN, Color.GREEN, Color.BLUE, Color.RED, Color.RED, Color
             .RED, Color.RED, Color.RED, Color.RED, Color.RED};
     private PointStyle[] mPointStyles = {PointStyle.CIRCLE, PointStyle.CIRCLE, PointStyle.CIRCLE,
             PointStyle.CIRCLE, PointStyle.CIRCLE, PointStyle.CIRCLE};
@@ -95,6 +95,7 @@ public class GraphicalActivity extends Activity implements OnClickListener {
     private BroadcastReceiver mUpdateReceiver;
 
     private Map mDistanceMap = new TreeMap(); //存位置关系和距离
+    private Map mKalManMap = new TreeMap();   //kalMan滤波算法
     private ArrayList<FiremanPosition> mFiremanPositionArrayList = new ArrayList<>();
     private ArrayList<FiremanPosition> mLastFiremanPositionArrayList = null;
 
@@ -113,26 +114,24 @@ public class GraphicalActivity extends Activity implements OnClickListener {
         mZoomOutButton.setOnClickListener(this);
         mZoom1Button.setOnClickListener(this);
         mSwitchXYButton.setOnClickListener(this);
+        ExecutorService exec = Executors.newCachedThreadPool();
+                UDPServer server = new UDPServer(this);
+                exec.execute(server);
+//        if (newChart == null) {
+            newChart = repeatGraphicaView();
+            mGraphicalPanel.removeView(mGraphicaView);
+            mGraphicaView = new GraphicalView(GraphicalActivity.this, newChart);
+//            mChart = newChart;
+            Log.i("roataTheta", "update graphicaView");
+            mGraphicalPanel.addView(mGraphicaView);
+//        } else {
+//            updateChart((ScatterChart) newChart, false);
+//            mGraphicaView.invalidate();
+//        }
 
         Intent intent = new Intent(GraphicalActivity.this, CalculatePositionService.class);
         startService(intent);  //主入口启动数据接受service
 
-//        Bundle extras = getIntent().getExtras();
-//        mChart = (AbstractChart) extras.getSerializable(ChartFactory.CHART);
-//        mLastFiremanPositionArrayList = (ArrayList) extras.getSerializable(ChartFactory.LASTFIREMANPOSITON);
-        //  mDistanceMap = new TreeMap<Integer, TreeMap>((HashMap<Integer, TreeMap>)extras.getSerializable(ChartFactory.DISTANCEMAP));
-//        mDistanceMap = DistanceMap.getDistanceMap();
-//        mGraphicaView = new GraphicalView(this, mChart);
-////        String title = extras.getString(ChartFactory.TITLE);
-////        if (title == null) {
-//            requestWindowFeature(Window.FEATURE_NO_TITLE);
-////        } else if (title.length() > 0) {
-////            setTitle(title);
-////        }
-//        mGraphicaView.setScaleX(0.01f);
-//        mGraphicaView.setScaleY(0.01f);
-//        mGraphicalPanel.addView(mGraphicaView);
-//        mGraphicaView.invalidate();
     }
 
     @Override
@@ -144,20 +143,21 @@ public class GraphicalActivity extends Activity implements OnClickListener {
         intentFilter.addAction(UPDATE_DRAWVIEW_ACTION);
         registerReceiver(mUpdateReceiver, intentFilter);
 
-        ExecutorService exec = Executors.newCachedThreadPool();
-        UDPServer server = new UDPServer(this);
-        exec.execute(server);
+//        ExecutorService exec = Executors.newCachedThreadPool();
+//        UDPServer server = new UDPServer(this);
+//        exec.execute(server);
 
-        new Thread() {
-
-            @Override
-            public void run() {
-                mTimeSync = new TimeSync();
-                UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(GraphicalActivity
-                        .this), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
-            }
-
-        }.start();
+//        new Thread() {
+//
+//            @Override
+//            public void run() {
+//                mTimeSync = new TimeSync();
+//                UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(GraphicalActivity
+//                        .this), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
+////                if (!mReportList.isEmpty()) mReportList.clear();
+//            }
+//
+//        }.start();
 
     }
 
@@ -181,37 +181,43 @@ public class GraphicalActivity extends Activity implements OnClickListener {
 
                 break;
             case R.id.switch_XY:
-                mGraphicalPanel.removeView(mGraphicaView);
-                AbstractChart newChart = switchXYData(mChart);
-                mGraphicaView = new GraphicalView(this, newChart);
-                mChart = newChart;
-                mGraphicalPanel.addView(mGraphicaView);
+                if (newChart != null) {
+                    Log.i("Vincent", "switch_XY");
+                    updateChart((ScatterChart) newChart, true);
+                    mGraphicaView.invalidate();
+                }
+//                mGraphicalPanel.removeView(mGraphicaView);
+//                AbstractChart newChart = switchXYData(mChart);
+//                mGraphicaView = new GraphicalView(this, newChart);
+//                mChart = newChart;
+//                mGraphicalPanel.addView(mGraphicaView);
                 break;
             default:
                 break;
         }
     }
 
-    public XYChart switchXYData(AbstractChart currentChart) {
-        ScatterChart scatterChart = (ScatterChart) currentChart;
-        XYMultipleSeriesDataset dataset = scatterChart.getDataset();
-        XYMultipleSeriesDataset newDataset = new XYMultipleSeriesDataset();
-        String titles[] = new String[dataset.getSeries().length];
-        ArrayList<double[]> valuesX = new ArrayList<>();
-        ArrayList<double[]> valuesY = new ArrayList<>();
-        for (int i = 0; i < dataset.getSeries().length; i++) {
-            titles[i] = dataset.getSeriesAt(i).getTitle();
-            double[] xValues = new double[1];
-            double[] yValues = new double[1];
-            xValues[0] = dataset.getSeriesAt(i).getXYMap().getYByIndex(0);
-            yValues[0] = dataset.getSeriesAt(i).getXYMap().getXByIndex(0);
-            valuesX.add(xValues);
-            valuesY.add(yValues);
-        }
-        addXYSeries(newDataset, titles, valuesX, valuesY, 0);
-        XYChart chart = new ScatterChart(newDataset, scatterChart.getRenderer());
-        return chart;
-    }
+//    public XYChart switchXYData(AbstractChart currentChart) {
+//        ScatterChart scatterChart = (ScatterChart) currentChart;
+//        XYMultipleSeriesDataset dataset = scatterChart.getDataset();
+//        XYMultipleSeriesDataset newDataset = new XYMultipleSeriesDataset();
+//        String titles[] = new String[dataset.getSeries().length];
+//        ArrayList<double[]> valuesX = new ArrayList<>();
+//        ArrayList<double[]> valuesY = new ArrayList<>();
+//        for (int i = 0; i < dataset.getSeries().length; i++) {
+//            titles[i] = dataset.getSeriesAt(i).getTitle();
+//            double[] xValues = new double[1];
+//            double[] yValues = new double[1];
+//            xValues[0] = dataset.getSeriesAt(i).getXYMap().getYByIndex(0);
+//            yValues[0] = dataset.getSeriesAt(i).getXYMap().getXByIndex(0);
+//            valuesX.add(xValues);
+//            valuesY.add(yValues);
+//        }
+//        addXYSeries(newDataset, titles, valuesX, valuesY, 0);
+//        XYChart chart = new ScatterChart(newDataset, scatterChart.getRenderer());
+//
+//        return chart;
+//    }
 
     public XYMultipleSeriesDataset addXYSeries(XYMultipleSeriesDataset dataset, String[] titles, List<double[]> xValues,
                                                List<double[]> yValues, int scale) {
@@ -223,26 +229,38 @@ public class GraphicalActivity extends Activity implements OnClickListener {
             int seriesLength = xV.length;
             for (int k = 0; k < seriesLength; k++) {
                 series.add(xV[k], yV[k]);
-                series.addAnnotation("No." + (i + 1), xV[k], yV[k]);
+                series.addAnnotation(titles[i], xV[k], yV[k]);
             }
             dataset.addSeries(series);
         }
         return dataset;
     }
 
+    AbstractChart newChart = null;
     private Handler mHandlerUpdateData = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case SEND_RESULT:
 //                    new MyThread().start();
-                    mFiremanPositionArrayList = MatrixUtil2.calculatePointsPosition(mDistanceMap, mLastFiremanPositionArrayList);
+                    mFiremanPositionArrayList = MatrixUtil2.calculatePointsPosition(mDistanceMap, mLastFiremanPositionArrayList, mKalManMap);
                     mLastFiremanPositionArrayList = MatrixUtil2.saveFiremanPositionHistory(mFiremanPositionArrayList);
-                    mGraphicalPanel.removeView(mGraphicaView);
-                    AbstractChart newChart = repeatGraphicaView();
-                    mGraphicaView = new GraphicalView(GraphicalActivity.this, newChart);
-                    mChart = newChart;
-                    mGraphicalPanel.addView(mGraphicaView);
+
+//                    AbstractChart newChart =null;
+                    if (newChart == null) {
+                        newChart = repeatGraphicaView();
+                        mGraphicalPanel.removeView(mGraphicaView);
+                        mGraphicaView = new GraphicalView(GraphicalActivity.this, newChart);
+                        mChart = newChart;
+                        Log.i("roataTheta", "update graphicaView");
+                        mGraphicalPanel.addView(mGraphicaView);
+                    } else {
+                        updateChart((ScatterChart) newChart, false);
+                        mGraphicaView.invalidate();
+                    }
+//                    new ScatterChart().getDataset()
+//                    mGraphicaView.getChart()
+//                    updateChart((ScatterChart) newChart);
                     break;
 
                 default:
@@ -278,11 +296,38 @@ public class GraphicalActivity extends Activity implements OnClickListener {
         }
     }
 
+    private void updateChart(ScatterChart scatterChart, boolean isRotate) {
+        String[] titles = new String[mFiremanPositionArrayList.size()];
+        for (int i = 0; i < mFiremanPositionArrayList.size(); i++) {
+            titles[i] = String.valueOf(mLastFiremanPositionArrayList.get(i).getmIndex());
+        }
+        ArrayList<double[]> valuesX = new ArrayList<>();
+        ArrayList<double[]> valuesY = new ArrayList<>();
+        for (int i = 0; i < mFiremanPositionArrayList.size(); i++) {
+            double[] xValues = new double[1];
+
+            double[] yValues = new double[1];
+            xValues[0] = mFiremanPositionArrayList.get(i).getX();
+//            if (isRotate) {
+//                yValues[0] = (mFiremanPositionArrayList.get(i).getY()) * (-1);
+//            } else {
+                yValues[0] = mFiremanPositionArrayList.get(i).getY();
+//            }
+            valuesX.add(xValues);
+            valuesY.add(yValues);
+
+        }
+//        XYMultipleSeriesRenderer mRenderer= scatterChart.getRenderer();
+        XYMultipleSeriesDataset dataset = scatterChart.getDataset();
+        dataset.clear();
+        addXYSeries(dataset, titles, valuesX, valuesY, 0);
+    }
+
     //定时重绘坐标
     private XYChart repeatGraphicaView() {
         String[] titles = new String[mFiremanPositionArrayList.size()];
         for (int i = 0; i < mFiremanPositionArrayList.size(); i++) {
-            titles[i] = "Fireman " + (i + 1);
+            titles[i] = String.valueOf(mLastFiremanPositionArrayList.get(i).getmIndex());
         }
         ArrayList<double[]> valuesX = new ArrayList<>();
         ArrayList<double[]> valuesY = new ArrayList<>();
@@ -294,17 +339,17 @@ public class GraphicalActivity extends Activity implements OnClickListener {
             valuesX.add(xValues);
             valuesY.add(yValues);
         }
-        int[] colors = new int[mFiremanPositionArrayList.size()];
-        for (int i = 0; i < mFiremanPositionArrayList.size(); i++) {
+        int[] colors = new int[/*mFiremanPositionArrayList.size()*/10];
+        for (int i = 0; i < 10/*mFiremanPositionArrayList.size()*/; i++) {
             colors[i] = mColorsArray[i % mColorsArray.length];
         }
-        PointStyle[] styles = new PointStyle[mFiremanPositionArrayList.size()];
-        for (int i = 0; i < mFiremanPositionArrayList.size(); i++) {
+        PointStyle[] styles = new PointStyle[10/*mFiremanPositionArrayList.size()*/];
+        for (int i = 0; i < 10/*mFiremanPositionArrayList.size()*/; i++) {
             styles[i] = mPointStyles[i % mPointStyles.length];
         }
         XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
-        //  XYMultipleSeriesRenderer renderer = buildRenderer(colors, styles);
-        setChartSettings(renderer, "", "X", "Y", -10, 10, -10, 10, Color.WHITE,
+//         XYMultipleSeriesRenderer renderer = buildRenderer(colors, styles);
+        setChartSettings(renderer, "", "X", "Y", -100, 100, -100, 100, Color.WHITE,
                 Color.WHITE);
         renderer.setPointSize(15);
         renderer.setLabelsTextSize(25);

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">FiremanLocate</string>
+    <string name="app_name">Coordinate</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="title_activity_show">ShowActivity</string>
     <string name="calculate">Calculate</string>

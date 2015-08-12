@@ -31,15 +31,9 @@ import Jama.Matrix;
  */
 public class MatrixUtil2 {
     private double[][] mDistanceArray;
-    //    private int[] indexResult = null; //save max and third point index
     private ArrayList<FiremanPosition> mFiremanPositionArrayList = new ArrayList<>();
-    //    private ArrayList<FiremanPosition> mLastFiremanPositionArrayList = null;
     //2 通过上一次坐标点计算旋转坐标原点 返回旋转角度
-//    double roataTheta = 0.0;
     double[] rk = new double[3];
-//    double[][] pref = new double[3][3]; //3行2列矩阵  前3个坐标点缓存
-//    double[][] arix = null;
-
 
     //遍历reportList，封装成distanceMapduixiang
     public static Map parseList(List<Report> mReportList, Map<Integer, TreeMap> mDistanceMap) {
@@ -50,27 +44,18 @@ public class MatrixUtil2 {
                 keySet.add(((Report) iPackage).getDataBlocks()[i].getModuleAID());
                 keySet.add(((Report) iPackage).getDataBlocks()[i].getModuleBID());
                 if (!mDistanceMap.containsKey(((Report) iPackage).getDataBlocks()[i].getModuleAID())) {
-
                     TreeMap subDistanceMap = new TreeMap();
                     subDistanceMap.put(((Report) iPackage).getDataBlocks()[i].getModuleAID(), 0f);
                     subDistanceMap.put(((Report) iPackage).getDataBlocks()[i].getModuleBID(), (((Report) iPackage).getDataBlocks()[i].getDistance()) / 100);
-//                    MatrixUtil.mapSort(subDistanceMap); //内部Map排序
                     mDistanceMap.put(((Report) iPackage).getDataBlocks()[i].getModuleAID(), subDistanceMap);
-                    //Log.i("roataTheta", "" + ((Report) iPackage).getDataBlocks()[i].getModuleAID() + "to" + ((Report) iPackage).getDataBlocks()[i].getModuleBID() + ": " + (((Report) iPackage).getDataBlocks()[i].getDistance()));
-//                    MatrixUtil.mapSort(mDistanceMap);   //最外部Map排序
+                    Log.i("roataTheta", "" + ((Report) iPackage).getDataBlocks()[i].getModuleAID() + "to" + ((Report) iPackage).getDataBlocks()[i].getModuleBID() + ": " + (((Report) iPackage).getDataBlocks()[i].getDistance()));
                 } else {
                     Map subDistance = (Map) mDistanceMap.get(((Report) iPackage).getDataBlocks()[i].getModuleAID());
                     subDistance.put(((Report) iPackage).getDataBlocks()[i].getModuleBID(), (((Report) iPackage).getDataBlocks()[i].getDistance()) / 100);
-//                    MatrixUtil.mapSort(subDistance);
-                    //Log.i("roataTheta", "" + ((Report) iPackage).getDataBlocks()[i].getModuleAID() + "to" + ((Report) iPackage).getDataBlocks()[i].getModuleBID() + ": " + (((Report) iPackage).getDataBlocks()[i].getDistance()));
+                    Log.i("roataTheta", "" + ((Report) iPackage).getDataBlocks()[i].getModuleAID() + "to" + ((Report) iPackage).getDataBlocks()[i].getModuleBID() + ": " + (((Report) iPackage).getDataBlocks()[i].getDistance()));
                 }
             }
         }
-//        for(int i=0;i<mDistanceMap.)
-//        for(TreeMap value:mDistanceMap.values()){
-//
-//        }
-
         return addZero(keySet, mDistanceMap);
     }
 
@@ -83,7 +68,6 @@ public class MatrixUtil2 {
             for (int i = 0; i < keySetArray.length; i++) {
                 if (!value.containsKey(keySetArray[i])) {
                     value.put(keySetArray[i], 0f);
-
                 }
             }
         }
@@ -111,37 +95,28 @@ public class MatrixUtil2 {
                 float d2 = (Float) treeMap2.get(keySetArray[i]);
                 if (d1 != 0 && d2 != 0) {
                     float d = (d1 + d2) / 2;
-//                    Map subDistance = mDistanceMap.get(keySetArray[i]);
                     treeMap.put(keySetArray[j], d);
-//                    Map subDistance2 = mDistanceMap.get(keySetArray[j]);
                     treeMap2.put(keySetArray[i], d);
-                    //Log.i("roataTheta", "distance" + i + j + ": " + d);
                 } else {
                     float d = d1 + d2;
-                    //Log.i("roataTheta", "distance" + i + j + ": " + d);
                     treeMap.put(keySetArray[j], d);
                     treeMap2.put(keySetArray[i], d);
                 }
             }
         }
-
         return mDistanceMap;
 
     }
 
-    public static ArrayList<FiremanPosition> calculatePointsPosition(Map mDistanceMap, ArrayList<FiremanPosition> mLastFiremanPositionArrayList) {
+    public static ArrayList<FiremanPosition> calculatePointsPosition(Map mDistanceMap, ArrayList<FiremanPosition> mLastFiremanPositionArrayList, Map<String, TreeMap<Integer, ArrayList>> mKalmanMap) {
         double[][] pref = new double[3][3];
         double roataTheta = 0.0;
         double[] rk = new double[3];
         ArrayList<FiremanPosition> mFiremanPositionArrayList = new ArrayList<>();
         if (mDistanceMap == null) {
-
             return null;
         }
-
-//        arix = new double[mDistanceArray.length][3];
         double[][] arix = new double[mDistanceMap.size()][3];
-//        indexResult = MatrixUtil.calculateMaxDistant(mDistanceArray); // 1 计算最大三个点下标
         int[] indexResult = calculateMaxDistant2(mDistanceMap);
         Log.i("Vincent", "ref1:" + indexResult[0]);
         Log.i("Vincent", "ref2:" + indexResult[1]);
@@ -151,26 +126,68 @@ public class MatrixUtil2 {
             Log.i("roataTheta", "roataTheta: " + roataTheta);
             Log.i("Vincent", "roataTheta: " + roataTheta);
         }
-
-
-//        pref = MatrixUtil.calculateThreePoint(mDistanceArray, indexResult, pref, mLastFiremanPositionArrayList, roataTheta); //确定前三个点坐标
         pref = calculateThreePoint2(mDistanceMap, indexResult, pref, mLastFiremanPositionArrayList, roataTheta); //确定前三个点坐标
-        //   arix = MatrixUtil.calculateOthersPointFrom2(arix, mDistanceArray, indexResult, pref, rk); //计算其他点坐标
         arix = calculateOthersPointFrom(arix, mDistanceMap, indexResult, pref, rk); //计算其他点坐标
         arix = transferAxis(arix, roataTheta);  //最后一次旋转，算出旋转坐标
         //将坐标换为对象
+        Object[] keyset = mDistanceMap.keySet().toArray();
         for (int i = 0; i < arix.length; i++) {
             Log.i("arix :", "arix" + i + " x: " + arix[i][0]);
             Log.i("arix :", "arix" + i + " y: " + arix[i][1]);
             Log.i("arix :", "arix" + i + " z: " + arix[i][2]);
-            mFiremanPositionArrayList.add(new FiremanPosition(arix[i][0], arix[i][1], arix[i][2]));
+            String title = String.format("%x", (((Integer) keyset[i]) & 0xF));
+            Log.i("2232323",title);
+            if("2".equals(title)){
+                title = "Exit1";
+            }else if("3".equals(title)){
+                title = "Exit2";
+            }else if("4".equals(title)){
+                title = "Cmd";
+            }
+//            if (!mKalmanMap.containsKey(title)) {
+//                TreeMap subDistanceMap = new TreeMap();
+//                ArrayList listX = new ArrayList();
+//                listX.add(arix[i][0]);
+//                ArrayList listY = new ArrayList();
+//                listY.add(arix[i][1]);
+//                subDistanceMap.put(0, listX);
+//                subDistanceMap.put(1, listY);
+//                mKalmanMap.put(title, subDistanceMap);
+                mFiremanPositionArrayList.add(new FiremanPosition(arix[i][0], arix[i][1], arix[i][2], title));
+//            } else {
+//                TreeMap<Integer, ArrayList> m = ((TreeMap) mKalmanMap.get(title));
+//                ArrayList lx = m.get(0);
+//                ArrayList ly = m.get(1);
+//                double distanceX = 0.0;
+//                double distanceY = 0.0;
+//                int n = 5;
+//                if (lx.size() == n && ly.size() == n) {
+//                    lx.remove(0);
+//                    lx.add(arix[i][0]);
+//                    ly.remove(0);
+//                    ly.add(arix[i][1]);
+//
+//                    distanceX = average(lx);
+//                    distanceY = average(ly);
+//                    mFiremanPositionArrayList.add(new FiremanPosition(distanceX, distanceY, arix[i][2], title));
+//                } else {
+//                    mFiremanPositionArrayList.add(new FiremanPosition(arix[i][0], arix[i][1], arix[i][2], title));
+//                }
+//            }
         }
-        //   mLastFiremanPositionArrayList = saveFiremanPositionHistory(mFiremanPositionArrayList);
         for (int i = 0; i < mFiremanPositionArrayList.size(); i++) {
             Log.i("roataTheta", "x" + i + mFiremanPositionArrayList.get(i).getX());
             Log.i("roataTheta", "y" + i + mFiremanPositionArrayList.get(i).getY());
         }
         return mFiremanPositionArrayList;
+    }
+
+    private static double average(ArrayList<Integer> list) {
+        double sumDistance = 0.0;
+        for (int i = 0; i < list.size(); i++) {
+            sumDistance += list.get(i);
+        }
+        return sumDistance / list.size();
     }
 
     //保存历史firemanPosition对象
@@ -185,7 +202,6 @@ public class MatrixUtil2 {
             double x = fp.getX();
             double y = fp.getY();
             double z = fp.getZ();
-
             Log.i("Vincent", "LastPosition" + i + " x; " + x + " y: " + y + " z: " + z);
             i++;
         }
@@ -254,29 +270,21 @@ public class MatrixUtil2 {
     public static int[] calculateMaxDistant2(Map distanceMap) {
         double max_data1 = 0.0;
         double max_data2 = 0.0;
-        int max_index = 0;
+        int max_index = 1;
         int third_index = 0;
         Object[] key = distanceMap.keySet().toArray();
         Object[] firstLineInnerKey = ((Map) distanceMap.get(key[0])).keySet().toArray();  //第一行key
-
-
         double theta = 0.0;
-        for (int i = 0; i < ((Map) distanceMap.get(key[0])).size(); i++) {
-            if (((Float) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) > max_data1) {
-                max_data1 = ((Float) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i]));
-                max_index = i;
-            }
-        }
-        int max_index_real = 0;
-        if (key.length <= max_index) {
-            max_index = key.length - 1;
-        }
+//        for (int i = 0; i < ((Map) distanceMap.get(key[0])).size(); i++) {
+//            if (((Float) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i])) > max_data1) {
+//                max_data1 = ((Float) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i]));
+//                max_index = i;
+//            }
+//        }
+//        if (key.length <= max_index) {
+//            max_index = key.length - 1;
+//        }
         Object[] maxLineInnerKey = ((Map) distanceMap.get(key[max_index])).keySet().toArray(); //最大行key
-
-//        theta = Math.acos(
-//                (Math.pow(distanceArray[0][i], 2) + Math.pow(distanceArray[max_index][i], 2) - Math.pow(distanceArray[0][max_index], 2))
-//                / (2 * distanceArray[0][i] * distanceArray[max_index][i])
-//        );
         Float d3 = ((Float) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[max_index]));
         for (int i = 0; i < ((Map) distanceMap.get(key[0])).size(); i++) {
             Float d1 = ((Float) ((Map) distanceMap.get(key[0])).get(firstLineInnerKey[i]));
@@ -284,12 +292,8 @@ public class MatrixUtil2 {
             if (i < ((Map) distanceMap.get(key[max_index])).size()) {
                 d2 = ((Float) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i]));
             }
-            // Integer d2 = ((Integer) ((Map) distanceMap.get(key[max_index])).get(maxLineInnerKey[i]));
-
             theta = Math.acos(
                     (
-
-
                             Math.pow(d1 != null ? d1 : 0, 2)
                                     + Math.pow(d2 != null ? d2 : 0, 2)
                                     - Math.pow(d3 != null ? d3 : 0, 2)
@@ -328,7 +332,7 @@ public class MatrixUtil2 {
     //通过下标计算第三个点坐标
     public static double[][] calculate3rdPointFrom2(double[][] pref, double distance12,
                                                     double round1, double round2, ArrayList<FiremanPosition> mLastFiremanPositionArrayList,
-                                                    double roataTheta,int[]indexResult) {
+                                                    double roataTheta, int[] indexResult) {
         double rangle = 0.01;
         while (distance12 > round1 + round2) {
             //  distance12 = distance12 - 0.2;
@@ -344,8 +348,6 @@ public class MatrixUtil2 {
                 round2 -= rangle;
             }
         }
-
-
         if (distance12 <= (round1 + round2)) {
             double theta1 = Math.acos((Math.pow(round1, 2) + Math.pow(distance12, 2) - Math.pow(round2, 2)) / (2 *
                     round1 * distance12));
@@ -354,7 +356,7 @@ public class MatrixUtil2 {
                     (pref[1][1] - pref[0][1])
             ) / (pref[1][0]
                     - pref[0][0]));
-            pref = chooseFiremanPosition3(pref, round1, theta1, theta2, mLastFiremanPositionArrayList, roataTheta,indexResult);
+            pref = chooseFiremanPosition3(pref, round1, theta1, theta2, mLastFiremanPositionArrayList, roataTheta, indexResult);
 
         } else {
 
@@ -365,7 +367,7 @@ public class MatrixUtil2 {
     //选取第三个坐标点
     public static double[][] chooseFiremanPosition3(double[][] pref, double round1,
                                                     double theta1, double theta2, ArrayList<FiremanPosition> mLastFiremanPositionArrayList,
-                                                    double roataTheta,int[]indexResult) {
+                                                    double roataTheta, int[] indexResult) {
         double[] temp_pref1 = {pref[0][0] + round1 * Math.cos(theta1 + theta2), pref[0][1] + round1 * Math.sin(theta1 + theta2), 0};
         pref[2][0] = pref[0][0] + round1 * Math.cos(theta1 + theta2);
         pref[2][1] = pref[0][1] + round1 * Math.sin(theta1 + theta2);
@@ -383,29 +385,27 @@ public class MatrixUtil2 {
         double[][] error_reftemp1 = MatrixUtil2.transferAxis(pref, roataTheta);
         //Log.i("Vincent","error_reftemp1 x3: "+error_reftemp1[2][0]);
         //Log.i("Vincent", "error_reftemp1 y3: " + error_reftemp1[2][1]);
-        Log.i("Vincent","last x3: "+mLastFiremanPositionArrayList.get(2).getX());
-        Log.i("Vincent","last y3: "+mLastFiremanPositionArrayList.get(2).getY());
+        Log.i("Vincent", "last x3: " + mLastFiremanPositionArrayList.get(2).getX());
+        Log.i("Vincent", "last y3: " + mLastFiremanPositionArrayList.get(2).getY());
         double distance1 = Math.sqrt(
                 Math.pow(error_reftemp1[2][0] - mLastFiremanPositionArrayList.get(indexResult[2]).getX(), 2) +
                         Math.pow(error_reftemp1[2][1] - mLastFiremanPositionArrayList.get(indexResult[2]).getY(), 2)
         );
-
         pref[2][0] = pref[0][0] + round1 * Math.cos(theta2 - theta1);
         pref[2][1] = pref[0][1] + round1 * Math.sin(theta2 - theta1);
         pref[2][2] = 0;
         double[] temp_pref2 = {pref[0][0] + round1 * Math.cos(theta2 - theta1), pref[0][1] + round1 * Math.sin(theta2 - theta1), 0};
-        //firemanTransferPosition1 = transferAxis(firemanPositionTemp1);
         double[][] error_reftemp2 = MatrixUtil2.transferAxis(pref, roataTheta);
 //        Log.i("Vincent","error_reftemp2 x3: "+error_reftemp2[2][0]);
 //        Log.i("Vincent", "error_reftemp2 y3: " + error_reftemp2[2][1]);
-        Log.i("Vincent","last x3: "+mLastFiremanPositionArrayList.get(2).getX());
-        Log.i("Vincent","last y3: "+mLastFiremanPositionArrayList.get(2).getY());
+        Log.i("Vincent", "last x3: " + mLastFiremanPositionArrayList.get(2).getX());
+        Log.i("Vincent", "last y3: " + mLastFiremanPositionArrayList.get(2).getY());
         double distance2 = Math.sqrt(
                 Math.pow(error_reftemp2[2][0] - mLastFiremanPositionArrayList.get(indexResult[2]).getX(), 2) +
                         Math.pow(error_reftemp2[2][1] - mLastFiremanPositionArrayList.get(indexResult[2]).getY(), 2)
         );
-        Log.i("Vincent","distance1: "+distance1);
-        Log.i("Vincent","distance2: "+distance2);
+        Log.i("Vincent", "distance1: " + distance1);
+        Log.i("Vincent", "distance2: " + distance2);
         if (distance1 <= distance2) {
             pref[2][0] = temp_pref1[0];
             pref[2][1] = temp_pref1[1];
@@ -445,7 +445,6 @@ public class MatrixUtil2 {
         Object[] key = distanceMap.keySet().toArray();
         Object[] firstLineInnerKey = ((Map) distanceMap.get(key[0])).keySet().toArray();  //第一行key
         Object[] maxLineInnerKey = ((Map) distanceMap.get(key[indexResult[1]])).keySet().toArray(); //最大行key
-
         //第一个点坐标
         pref[0][0] = 0;
         pref[0][1] = 0;
@@ -460,7 +459,7 @@ public class MatrixUtil2 {
         double round2 = (((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]])) == null ? 0 : ((Float) ((Map) distanceMap.get(key[indexResult[1]])).get(maxLineInnerKey[indexResult[2]]));
         pref = calculate3rdPointFrom2(pref,  //第三个点坐标
                 distance12, round1,
-                round2, mLastFiremanPositionArrayList, roataTheta,indexResult);
+                round2, mLastFiremanPositionArrayList, roataTheta, indexResult);
         return pref;
     }
 
@@ -480,9 +479,7 @@ public class MatrixUtil2 {
         double y1 = pref[0][1];
         double y2 = pref[1][1];
         double y3 = pref[2][1];
-
         double[][] B = new double[2][1];
-
         B[0][0] = 0.5 * (Math.pow(x2, 2) + Math.pow(y2, 2) - Math.pow(r2k, 2) - (Math.pow(x1, 2) + Math.pow(y1, 2) - Math.pow(r1k, 2)));
         B[1][0] = 0.5 * (Math.pow(x3, 2) + Math.pow(y3, 2) - Math.pow(r3k, 2) - (Math.pow(x1, 2) + Math.pow(y1, 2) - Math.pow(r1k, 2)));
         double[][] A = new double[][]{{x2 - x1, y2 - y1}, {x3 - x1, y3 - y1}};
@@ -516,7 +513,6 @@ public class MatrixUtil2 {
             } else {
                 return Math.PI + theta;
             }
-
         }
     }
 
