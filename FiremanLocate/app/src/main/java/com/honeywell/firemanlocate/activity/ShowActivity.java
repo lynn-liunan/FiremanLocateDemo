@@ -182,6 +182,8 @@ public class ShowActivity extends Activity implements View.OnClickListener {
                 mTimeSync = new TimeSync();
                 UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(
                         ShowActivity.this), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
+                sender.send();
+
                 if (!mReportList.isEmpty()) mReportList.clear();
 
 //                Message msg = new Message();
@@ -347,9 +349,10 @@ public class ShowActivity extends Activity implements View.OnClickListener {
         XYMultipleSeriesDataset dataset = scatterChart.getDataset();
 
         XYMultipleSeriesRenderer renderer = scatterChart.getRenderer();
+//        renderer.removeAllRenderers();
+        dataset.clear();
         setRender(renderer, titles);
         Log.i("abcd", "fsfsffssf");
-        dataset.clear();
         addXYSeries(dataset, titles, valuesX, valuesY, 0);
     }
 
@@ -393,10 +396,10 @@ public class ShowActivity extends Activity implements View.OnClickListener {
         //  XYMultipleSeriesRenderer renderer = buildRenderer(colors, styles);
         setChartSettings(renderer, "", "X", "Y", -10, 10, -10, 10, Color.WHITE,
                 Color.WHITE);
-        renderer.setPointSize(15);
-        renderer.setLabelsTextSize(25);
+        renderer.setPointSize(10);
+        renderer.setLabelsTextSize(20);
         renderer.setLabelsColor(Color.BLACK);
-        renderer.setAxisTitleTextSize(50);
+        renderer.setAxisTitleTextSize(35);
         renderer.setAxesColor(Color.BLACK);
         renderer.setShowLegend(false);
         renderer.setYLabelsPadding(10);

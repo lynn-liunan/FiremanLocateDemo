@@ -63,12 +63,13 @@ public class UDPServer implements Runnable {
 
                 try {
                     try {
+                        Log.i("CalculateService","dPacket: "+dPacket);
                         dSocket.receive(dPacket);
                     }catch (Exception ex){
                         Log.i("CalculateService","ex:"+ex);
                     }
                     Log.i("CalculateService", "UDPServer run5555");
-                    Log.i("CalculateService","dPacket.getData(): "+dPacket.getData());
+                    Log.i("CalculateService", "dPacket.getData(): " + dPacket.getData());
                     if (dPacket.getData() != null && dPacket.getData().length > 0) {
                         Intent intent = new Intent();
                         intent.putExtra(UDP_MSG_RECEIVED, dPacket.getData());

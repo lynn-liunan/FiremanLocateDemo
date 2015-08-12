@@ -70,19 +70,19 @@ public class CalculatePositionService extends Service {
         intentFilter.addAction(PackagetReceiver.MSG_RECEIVED_ACTION);
         registerReceiver(mMessageReceiver, intentFilter);
 
-        new Thread() {
+//        new Thread() {
 
-            @Override
-            public void run() {
-                mTimeSync = new TimeSync();
-                String address = NetworkUtil.getIPAddress(mContext);
-                Log.i(TAG,"address: "+address);
-                UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(mContext
-                        ), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
-                if (!mReportList.isEmpty()) mReportList.clear();
-            }
-
-        }.start();
+//            @Override
+//            public void run() {
+//                mTimeSync = new TimeSync();
+//                String address = NetworkUtil.getIPAddress(mContext);
+//                Log.i(TAG,"address: "+address);
+//                UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(mContext
+//                        ), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
+//                if (!mReportList.isEmpty()) mReportList.clear();
+//            }
+//
+//        }.start();
     }
 
     @Override
