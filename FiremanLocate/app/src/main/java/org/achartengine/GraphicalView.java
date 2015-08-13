@@ -127,8 +127,8 @@ public class GraphicalView extends View {
      */
     private int mOldRotateDegree = 0;
 
-   // private   Paint paint;
-   // private Context ctx;
+    private Paint paint;
+    private Context ctx;
 
     /**
      * Creates a new graphical view.
@@ -138,12 +138,12 @@ public class GraphicalView extends View {
      */
     public GraphicalView(Context context, AbstractChart chart) {
         super(context);
-      //  ctx = context;
+        ctx = context;
         mChart = chart;
         //test
-      //  this.paint = new Paint();
-       // this.paint.setAntiAlias(true); //消除锯齿
-     //   this.paint.setStyle(Paint.Style.STROKE); //绘制空心圆
+        this.paint = new Paint();
+        this.paint.setAntiAlias(true); //消除锯齿
+        this.paint.setStyle(Paint.Style.STROKE); //绘制空心圆
         //end
         mHandler = new Handler();
         if (mChart instanceof XYChart) {
@@ -250,27 +250,27 @@ public class GraphicalView extends View {
         mDrawn = true;
 
         //test
-//        int viewHeight = (GraphicalView.this.getHeight())/2;
-//        int viewHeight2 = GraphicalView.this.getMeasuredHeight();
-//        Log.i(TAG,"viewHeight: "+viewHeight);
-//        Log.i(TAG,"viewHeight2: "+viewHeight2);
-//
-//
-//        int center = getWidth()/2;
-//        int innerCircle = dip2px(ctx, 30); //设置内圆半径
-//        int ringWidth = dip2px(ctx, 30); //设置圆环宽度
+        int viewHeight = (GraphicalView.this.getHeight()) / 2;
+        int viewHeight2 = GraphicalView.this.getMeasuredHeight();
+        Log.i(TAG, "viewHeight: " + viewHeight);
+        Log.i(TAG, "viewHeight2: " + viewHeight2);
+
+
+        int center = getWidth() / 2;
+        int innerCircle = dip2px(ctx, 30); //设置内圆半径
+        int ringWidth = dip2px(ctx, 30); //设置圆环宽度
 //        绘制内圆
-//        this.paint.setColor(Color.BLUE);
-//        this.paint.setStrokeWidth(3);
+        this.paint.setColor(Color.BLUE);
+        this.paint.setStrokeWidth(3);
 //        canvas.drawLine(center,center,center,0,paint);
-//        for(int i = 0;i<viewHeight;i+=ringWidth){
-//            //绘制内圆
-//            this.paint.setColor(Color.BLUE);
-//            this.paint.setStrokeWidth(3);
-//            canvas.drawCircle(center,center, innerCircle+i, this.paint);
+        for(int i = 0;i<viewHeight;i+=ringWidth){
+            //绘制内圆
+            this.paint.setColor(Color.BLUE);
+            this.paint.setStrokeWidth(2);
+            canvas.drawCircle(center,center, innerCircle+i, this.paint);
 //            this.paint.setTextSize(dip2px(ctx,20));
 //            canvas.drawText("hellow",0,5,center+dip2px(ctx,5),i,paint);
-//        }
+        }
         //绘制圆环
 //        this.paint.setARGB(255, 212 ,225, 233);
 //        this.paint.setStrokeWidth(ringWidth);
@@ -283,6 +283,7 @@ public class GraphicalView extends View {
 
         //end
     }
+
     /**
      * 根据手机的分辨率从 dp 的单位 转成为 px(像素)
      */
@@ -290,6 +291,7 @@ public class GraphicalView extends View {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
     }
+
     /**
      * Set the rotate degree
      *

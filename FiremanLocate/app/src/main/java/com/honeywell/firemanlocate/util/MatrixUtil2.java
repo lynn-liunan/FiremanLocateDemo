@@ -1,22 +1,13 @@
 package com.honeywell.firemanlocate.util;
 
-import android.content.Intent;
-import android.os.Bundle;
 import android.util.Log;
-import android.widget.Button;
-import android.widget.Toast;
 
-import com.honeywell.firemanlocate.R;
-import com.honeywell.firemanlocate.activity.ShowActivity;
 import com.honeywell.firemanlocate.model.FiremanPosition;
 import com.honeywell.firemanlocate.model.IPackage;
 import com.honeywell.firemanlocate.model.Report;
-import com.honeywell.firemanlocate.view.chart.ScatterChart;
-import com.honeywell.firemanlocate.view.chart.ScatterChart2;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -131,49 +122,24 @@ public class MatrixUtil2 {
         arix = transferAxis(arix, roataTheta);  //最后一次旋转，算出旋转坐标
         //将坐标换为对象
         Object[] keyset = mDistanceMap.keySet().toArray();
+        //add by Vincent
+//        double cmdX = arix[2][0];
+//        double cmdY = arix[2][1];
+        //end
         for (int i = 0; i < arix.length; i++) {
             Log.i("arix :", "arix" + i + " x: " + arix[i][0]);
             Log.i("arix :", "arix" + i + " y: " + arix[i][1]);
             Log.i("arix :", "arix" + i + " z: " + arix[i][2]);
             String title = String.format("%x", (((Integer) keyset[i]) & 0xF));
-            Log.i("2232323",title);
-            if("2".equals(title)){
+            Log.i("2232323", title);
+            if ("2".equals(title)) {
                 title = "Exit1";
-            }else if("3".equals(title)){
+            } else if ("3".equals(title)) {
                 title = "Exit2";
-            }else if("4".equals(title)){
+            } else if ("4".equals(title)) {
                 title = "Cmd";
             }
-//            if (!mKalmanMap.containsKey(title)) {
-//                TreeMap subDistanceMap = new TreeMap();
-//                ArrayList listX = new ArrayList();
-//                listX.add(arix[i][0]);
-//                ArrayList listY = new ArrayList();
-//                listY.add(arix[i][1]);
-//                subDistanceMap.put(0, listX);
-//                subDistanceMap.put(1, listY);
-//                mKalmanMap.put(title, subDistanceMap);
-                mFiremanPositionArrayList.add(new FiremanPosition(arix[i][0], arix[i][1], arix[i][2], title));
-//            } else {
-//                TreeMap<Integer, ArrayList> m = ((TreeMap) mKalmanMap.get(title));
-//                ArrayList lx = m.get(0);
-//                ArrayList ly = m.get(1);
-//                double distanceX = 0.0;
-//                double distanceY = 0.0;
-//                int n = 5;
-//                if (lx.size() == n && ly.size() == n) {
-//                    lx.remove(0);
-//                    lx.add(arix[i][0]);
-//                    ly.remove(0);
-//                    ly.add(arix[i][1]);
-//
-//                    distanceX = average(lx);
-//                    distanceY = average(ly);
-//                    mFiremanPositionArrayList.add(new FiremanPosition(distanceX, distanceY, arix[i][2], title));
-//                } else {
-//                    mFiremanPositionArrayList.add(new FiremanPosition(arix[i][0], arix[i][1], arix[i][2], title));
-//                }
-//            }
+            mFiremanPositionArrayList.add(new FiremanPosition(arix[i][0], arix[i][1] , arix[i][2], title));
         }
         for (int i = 0; i < mFiremanPositionArrayList.size(); i++) {
             Log.i("roataTheta", "x" + i + mFiremanPositionArrayList.get(i).getX());

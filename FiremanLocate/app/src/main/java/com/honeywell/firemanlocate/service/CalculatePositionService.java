@@ -100,7 +100,7 @@ public class CalculatePositionService extends Service {
                     mReportList.clear();
                 }
             }
-        },  5000, 600);
+        },  3000, 600);
         return START_STICKY;
     }
 

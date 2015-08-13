@@ -183,9 +183,7 @@ public class ShowActivity extends Activity implements View.OnClickListener {
                 UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(
                         ShowActivity.this), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
                 sender.send();
-
                 if (!mReportList.isEmpty()) mReportList.clear();
-
 //                Message msg = new Message();
 //                msg.what = SEND_RESULT;
 //                msg.obj = sender.send();
@@ -405,6 +403,7 @@ public class ShowActivity extends Activity implements View.OnClickListener {
         renderer.setYLabelsPadding(10);
         renderer.setLegendTextSize(15);
         renderer.setMargins(new int[]{20, 30, 15, 20});
+
         renderer.setScale(0.01f);
         setRender(renderer, titles);
         XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
