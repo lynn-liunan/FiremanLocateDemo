@@ -15,12 +15,18 @@
  */
 package org.achartengine.chart;
 
+import android.app.Application;
+import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.RectF;
+import android.util.Log;
 
+import org.achartengine.GraphicalView;
 import org.achartengine.model.XYMultipleSeriesDataset;
+import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.SimpleSeriesRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
@@ -31,6 +37,7 @@ import java.util.List;
  * The scatter chart rendering class.
  */
 public class ScatterChart extends XYChart {
+    private static final String TAG = "ScatterChart";
     /**
      * The constant to identify this chart type.
      */
@@ -57,8 +64,8 @@ public class ScatterChart extends XYChart {
      * @param dataset  the multiple series dataset
      * @param renderer the multiple series renderer
      */
-    public ScatterChart(XYMultipleSeriesDataset dataset, XYMultipleSeriesRenderer renderer) {
-        super(dataset, renderer);
+    public ScatterChart(XYMultipleSeriesDataset dataset, XYMultipleSeriesRenderer renderer, Context ctx) {
+        super(dataset, renderer, ctx);
         size = renderer.getPointSize();
     }
 
@@ -69,6 +76,13 @@ public class ScatterChart extends XYChart {
         size = renderer.getPointSize();
     }
 
+    @Override
+    public void drawSeries(Canvas canvas, Paint paint, List<Float> points,
+                           XYSeriesRenderer renderer, float yAxisValue, int seriesIndex, int startIndex) {
+    }
+    int innerCircle = dip2px(mCtx, 30); //设置内圆半径
+    int ringWidth = dip2px(mCtx, 60); //设置圆环宽度
+    Paint paint1 = new Paint();
     /**
      * The graphical representation of a series.
      *
@@ -82,7 +96,7 @@ public class ScatterChart extends XYChart {
      */
     @Override
     public void drawSeries(Canvas canvas, Paint paint, List<Float> points,
-                           XYSeriesRenderer renderer, float yAxisValue, int seriesIndex, int startIndex) {
+                           XYSeriesRenderer renderer, float yAxisValue, int seriesIndex, int startIndex, boolean isRadar) {
         paint.setColor(renderer.getColor());
         final float stroke = paint.getStrokeWidth();
         if (renderer.isFillPoints()) {
@@ -102,6 +116,18 @@ public class ScatterChart extends XYChart {
             case CIRCLE:
                 for (int i = 0; i < length; i += 2) {
                     drawCircle(canvas, paint, points.get(i), points.get(i + 1));
+                    //test
+                    int viewHeight = (canvas.getHeight()) / 2;
+                    paint1.setColor(Color.BLUE);
+                    paint1.setStrokeWidth(2);
+                    paint1.setAntiAlias(true); //消除锯齿
+                    paint1.setStyle(Paint.Style.STROKE); //绘制空心圆
+                    if (isRadar) {
+                        for (int j = 0; j < viewHeight * 10; j += ringWidth) {
+                            canvas.drawCircle(points.get(i), points.get(i + 1), innerCircle + j, paint1);
+                        }
+                    }
+                    //end
                 }
                 break;
             case TRIANGLE:

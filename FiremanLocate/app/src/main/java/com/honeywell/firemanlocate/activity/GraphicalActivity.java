@@ -373,7 +373,7 @@ public class GraphicalActivity extends Activity implements OnClickListener {
         }
         XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
         addXYSeries(dataset, titles, valuesX, valuesY, 0);
-        return new ScatterChart(dataset, renderer);
+        return new ScatterChart(dataset, renderer,this);
 
     }
 

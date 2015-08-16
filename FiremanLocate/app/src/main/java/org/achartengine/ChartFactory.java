@@ -71,7 +71,7 @@ public class ChartFactory {
     public static final GraphicalView getScatterChartView(Context context,
                                                           XYMultipleSeriesDataset dataset, XYMultipleSeriesRenderer renderer) {
         checkParameters(dataset, renderer);
-        XYChart chart = new ScatterChart(dataset, renderer);
+        XYChart chart = new ScatterChart(dataset, renderer,context);
         return new GraphicalView(context, chart);
     }
 
@@ -115,7 +115,7 @@ public class ChartFactory {
                                                      ArrayList<FiremanPosition> lastFiremanPosition, TreeMap distanceMap) {
         checkParameters(dataset, renderer);
         Intent intent = new Intent(context, GraphicalActivity.class);
-        XYChart chart = new ScatterChart(dataset, renderer);
+        XYChart chart = new ScatterChart(dataset, renderer,context);
         intent.putExtra(CHART, chart);
         intent.putExtra(LASTFIREMANPOSITON, lastFiremanPosition);
         intent.putExtra(DISTANCEMAP, distanceMap);
@@ -127,7 +127,7 @@ public class ChartFactory {
                                                      XYMultipleSeriesDataset dataset, XYMultipleSeriesRenderer renderer, String activityTitle) {
         checkParameters(dataset, renderer);
         Intent intent = new Intent(context, GraphicalActivity.class);
-        XYChart chart = new ScatterChart(dataset, renderer);
+        XYChart chart = new ScatterChart(dataset, renderer,context);
         intent.putExtra(CHART, chart);
         intent.putExtra(TITLE, activityTitle);
         return intent;

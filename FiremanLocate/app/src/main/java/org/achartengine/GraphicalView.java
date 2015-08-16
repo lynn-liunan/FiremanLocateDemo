@@ -126,10 +126,10 @@ public class GraphicalView extends View {
      * The old degree of view should rotate
      */
     private int mOldRotateDegree = 0;
-
+    //test
     private Paint paint;
     private Context ctx;
-
+    //end
     /**
      * Creates a new graphical view.
      *
@@ -250,27 +250,27 @@ public class GraphicalView extends View {
         mDrawn = true;
 
         //test
-        int viewHeight = (GraphicalView.this.getHeight()) / 2;
-        int viewHeight2 = GraphicalView.this.getMeasuredHeight();
-        Log.i(TAG, "viewHeight: " + viewHeight);
-        Log.i(TAG, "viewHeight2: " + viewHeight2);
-
-
-        int center = getWidth() / 2;
-        int innerCircle = dip2px(ctx, 30); //设置内圆半径
-        int ringWidth = dip2px(ctx, 30); //设置圆环宽度
+//        int viewHeight = (GraphicalView.this.getHeight()) / 2;
+//        int viewHeight2 = GraphicalView.this.getMeasuredHeight();
+//        Log.i(TAG, "viewHeight: " + viewHeight);
+//        Log.i(TAG, "viewHeight2: " + viewHeight2);
+//
+//
+//        int center = getWidth() / 2;
+//        int innerCircle = dip2px(ctx, 30); //设置内圆半径
+//        int ringWidth = dip2px(ctx, 30); //设置圆环宽度
 //        绘制内圆
-        this.paint.setColor(Color.BLUE);
-        this.paint.setStrokeWidth(3);
-//        canvas.drawLine(center,center,center,0,paint);
-        for(int i = 0;i<viewHeight;i+=ringWidth){
-            //绘制内圆
-            this.paint.setColor(Color.BLUE);
-            this.paint.setStrokeWidth(2);
-            canvas.drawCircle(center,center, innerCircle+i, this.paint);
+//        this.paint.setColor(Color.BLUE);
+//        this.paint.setStrokeWidth(3);
+////        canvas.drawLine(center,center,center,0,paint);
+//        for(int i = 0;i<viewHeight;i+=ringWidth){
+////            绘制内圆
+//            this.paint.setColor(Color.BLUE);
+//            this.paint.setStrokeWidth(2);
+//            canvas.drawCircle(center,center, innerCircle+i, this.paint);
 //            this.paint.setTextSize(dip2px(ctx,20));
 //            canvas.drawText("hellow",0,5,center+dip2px(ctx,5),i,paint);
-        }
+//        }
         //绘制圆环
 //        this.paint.setARGB(255, 212 ,225, 233);
 //        this.paint.setStrokeWidth(ringWidth);

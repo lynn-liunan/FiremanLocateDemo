@@ -31,6 +31,7 @@ public class MatrixUtil2 {
         HashSet<Integer> keySet = new HashSet<>();
         for (int j = 0; j < mReportList.size(); j++) {
             IPackage iPackage = mReportList.get(j);
+            if(((Report) iPackage).getDataBlocks()==null)return mDistanceMap;
             for (int i = 0; i < ((Report) iPackage).getDataBlocks().length; i++) {
                 keySet.add(((Report) iPackage).getDataBlocks()[i].getModuleAID());
                 keySet.add(((Report) iPackage).getDataBlocks()[i].getModuleBID());
@@ -125,7 +126,7 @@ public class MatrixUtil2 {
         //add by Vincent
 //        double cmdX = arix[2][0];
 //        double cmdY = arix[2][1];
-        //end
+       // end
         for (int i = 0; i < arix.length; i++) {
             Log.i("arix :", "arix" + i + " x: " + arix[i][0]);
             Log.i("arix :", "arix" + i + " y: " + arix[i][1]);
@@ -139,7 +140,7 @@ public class MatrixUtil2 {
             } else if ("4".equals(title)) {
                 title = "Cmd";
             }
-            mFiremanPositionArrayList.add(new FiremanPosition(arix[i][0], arix[i][1] , arix[i][2], title));
+            mFiremanPositionArrayList.add(new FiremanPosition(arix[i][0], arix[i][1], arix[i][2], title));
         }
         for (int i = 0; i < mFiremanPositionArrayList.size(); i++) {
             Log.i("roataTheta", "x" + i + mFiremanPositionArrayList.get(i).getX());

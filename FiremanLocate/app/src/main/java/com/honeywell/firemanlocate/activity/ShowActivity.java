@@ -15,11 +15,9 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 
 import com.honeywell.firemanlocate.R;
-import com.honeywell.firemanlocate.model.DataType;
 import com.honeywell.firemanlocate.model.FiremanPosition;
 import com.honeywell.firemanlocate.model.IPackage;
 import com.honeywell.firemanlocate.model.Report;
-import com.honeywell.firemanlocate.model.TimeACK;
 import com.honeywell.firemanlocate.model.TimeSync;
 import com.honeywell.firemanlocate.service.CalculatePositionService;
 import com.honeywell.firemanlocate.util.MatrixUtil2;
@@ -28,10 +26,8 @@ import com.honeywell.firemanlocate.network.UDPClient;
 import com.honeywell.firemanlocate.network.UDPServer;
 
 import org.achartengine.GraphicalView;
-import org.achartengine.chart.AbstractChart;
 import org.achartengine.chart.PointStyle;
 import org.achartengine.chart.ScatterChart;
-import org.achartengine.chart.XYChart;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
@@ -284,6 +280,7 @@ public class ShowActivity extends Activity implements View.OnClickListener {
                         newChart = repeatGraphicaView();
                         mGraphicalPanel.removeView(mGraphicaView);
                         mGraphicaView = new GraphicalView(ShowActivity.this, newChart);
+                        mGraphicaView.setBackgroundColor(getResources().getColor(R.color.green));
                         Log.i("roataTheta", "update graphicaView");
                         mGraphicalPanel.addView(mGraphicaView);
                     } else {
@@ -361,11 +358,15 @@ public class ShowActivity extends Activity implements View.OnClickListener {
             XYSeriesRenderer r = new XYSeriesRenderer();
             if ("Exit1".equals(titles[i]) || "Exit2".equals(titles[i])) {
                 r.setColor(mColorsArray[0]);
+                r.setAnnotationsColor(mColorsArray[0]);
             } else if ("Cmd".equals(titles[i])) {
                 r.setColor(mColorsArray[1]);
+                r.setAnnotationsColor(mColorsArray[1]);
             } else {
+                r.setAnnotationsColor(mColorsArray[2]);
                 r.setColor(mColorsArray[2]);
             }
+
             r.setPointStyle(mPointStyles[0]);
             renderer.addSeriesRenderer(r);
         }
@@ -392,29 +393,34 @@ public class ShowActivity extends Activity implements View.OnClickListener {
         }
         XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
         //  XYMultipleSeriesRenderer renderer = buildRenderer(colors, styles);
-        setChartSettings(renderer, "", "X", "Y", -10, 10, -10, 10, Color.WHITE,
-                Color.WHITE);
+        setChartSettings(renderer, "", "X", "Y", -10, 10, -10, 10/*, Color.GREEN,
+                Color.GREEN*/);
         renderer.setPointSize(10);
         renderer.setLabelsTextSize(20);
-        renderer.setLabelsColor(Color.BLACK);
+        renderer.setLabelsColor(Color.WHITE);
         renderer.setAxisTitleTextSize(35);
-        renderer.setAxesColor(Color.BLACK);
+        renderer.setAxesColor(Color.RED);
         renderer.setShowLegend(false);
         renderer.setYLabelsPadding(10);
         renderer.setLegendTextSize(15);
         renderer.setMargins(new int[]{20, 30, 15, 20});
-
+        renderer.setYLabelsColor(0, Color.WHITE);
+        renderer.setXLabelsColor(Color.WHITE);
+        renderer.setMarginsColor(getResources().getColor(R.color.grey_black));
+//        renderer.setApplyBackgroundColor(true);
+//        renderer.setBackgroundColor(Color.BLACK);
+//        renderer.setZoomButtonsVisible(true);
         renderer.setScale(0.01f);
         setRender(renderer, titles);
         XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
         addXYSeries(dataset, titles, valuesX, valuesY, 0);
-        return new ScatterChart(dataset, renderer);
+        return new ScatterChart(dataset, renderer, this);
 
     }
 
     private void setChartSettings(XYMultipleSeriesRenderer renderer, String title, String xTitle,
-                                  String yTitle, double xMin, double xMax, double yMin, double yMax, int axesColor,
-                                  int labelsColor) {
+                                  String yTitle, double xMin, double xMax, double yMin, double yMax/*, int axesColor,
+                                  int labelsColor*/) {
         renderer.setChartTitle(title);
         renderer.setXTitle(xTitle);
         renderer.setYTitle(yTitle);
@@ -422,8 +428,8 @@ public class ShowActivity extends Activity implements View.OnClickListener {
         renderer.setXAxisMax(xMax);
         renderer.setYAxisMin(yMin);
         renderer.setYAxisMax(yMax);
-        renderer.setAxesColor(axesColor);
-        renderer.setLabelsColor(labelsColor);
+//        renderer.setAxesColor(axesColor);
+//        renderer.setLabelsColor(labelsColor);
     }
 
     @Override
