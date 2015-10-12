@@ -56,11 +56,7 @@ public class UDPServer implements Runnable {
                 dSocket.setReuseAddress(true);
                 dSocket.bind(new InetSocketAddress(PORT));
             }
-            Log.i("CalculateService","UDPServer run33333");
-
             while (mLife) {
-                Log.i("CalculateService","UDPServer run4444");
-
                 try {
                     try {
                         Log.i("CalculateService","dPacket: "+dPacket);
