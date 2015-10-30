@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Coordinate</string>
     <string name="title_activity_main">MainActivity</string>
-    <string name="title_activity_show">ShowActivity</string>
+    <string name="title_activity_show">IndoorLocation</string>
     <string name="calculate">Calculate</string>
     <string name="load_file">Load Data</string>
     <string name="send_data">Send Data</string>
