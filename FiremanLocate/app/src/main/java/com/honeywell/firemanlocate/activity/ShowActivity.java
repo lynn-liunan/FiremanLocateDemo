@@ -9,21 +9,27 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.honeywell.firemanlocate.R;
 import com.honeywell.firemanlocate.model.FiremanPosition;
 import com.honeywell.firemanlocate.model.IPackage;
 import com.honeywell.firemanlocate.model.Report;
 import com.honeywell.firemanlocate.model.TimeSync;
+import com.honeywell.firemanlocate.network.UDPClient;
+import com.honeywell.firemanlocate.network.UDPServer;
 import com.honeywell.firemanlocate.service.CalculatePositionService;
 import com.honeywell.firemanlocate.util.MatrixUtil2;
 import com.honeywell.firemanlocate.util.NetworkUtil;
-import com.honeywell.firemanlocate.network.UDPClient;
-import com.honeywell.firemanlocate.network.UDPServer;
 
 import org.achartengine.GraphicalView;
 import org.achartengine.chart.PointStyle;
@@ -39,6 +45,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 
 /**
  * Created by lynnliu on 7/17/15.
@@ -79,6 +86,14 @@ public class ShowActivity extends Activity implements View.OnClickListener {
     private ArrayList<FiremanPosition> mFiremanPositionArrayList = new ArrayList<>();
     private ArrayList<FiremanPosition> mLastFiremanPositionArrayList = null;
     ScatterChart newChart = null;
+//    private Button mStartButton;
+//    private ScrollView mScrollView;
+//    private TextView mLogTextView;
+//    private EditText mAddressEditText;
+//
+//    private TimeSync mTimeSync;
+//    private PackageGotReceiver mMessageReceiver;
+//    private List<IPackage> mReportList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,6 +165,11 @@ public class ShowActivity extends Activity implements View.OnClickListener {
             dataset.addSeries(series);
         }
         return dataset;
+//        setContentView(R.layout.activity_show);
+//        mStartButton = (Button) findViewById(R.id.start_button);
+//        mScrollView = (ScrollView) findViewById(R.id.scroll_view);
+//        mLogTextView = (TextView) findViewById(R.id.msg_log_text);
+//        mAddressEditText = (EditText) findViewById(R.id.ip_edittext);
     }
 
     @Override
@@ -171,22 +191,44 @@ public class ShowActivity extends Activity implements View.OnClickListener {
         UDPServer server = new UDPServer(this);
         exec.execute(server);
 
-        new Thread() {
-
-            @Override
-            public void run() {
-                mTimeSync = new TimeSync();
-                UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(
-                        ShowActivity.this), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
-                sender.send();
-                if (!mReportList.isEmpty()) mReportList.clear();
-//                Message msg = new Message();
-//                msg.what = SEND_RESULT;
-//                msg.obj = sender.send();
-//                mHandler.sendMessage(msg);
-            }
-
-        }.start();
+//        new Thread() {
+//        mStartButton.setOnClickListener(new OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (TextUtils.isEmpty(mAddressEditText.getText().toString().trim())) {
+//                    Toast.makeText(ShowActivity.this, R.string.input_address, Toast.LENGTH_SHORT).show();
+//                    return;
+//                }
+//                final String ipAddressString = mAddressEditText.getText().toString().trim();
+//                new Thread() {
+//
+//                    @Override
+//                    public void run() {
+//                        mTimeSync = new TimeSync();
+//                        UDPClient sender = new UDPClient(ipAddressString/*NetworkUtil.getIPAddress
+//                                (ShowActivity.this)*/, mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
+//                        if (!mReportList.isEmpty()) mReportList.clear();
+//
+//                        Message msg = new Message();
+//                        msg.what = SEND_RESULT;
+//                        msg.obj = sender.send();
+//                        mHandler.sendMessage(msg);
+//                    }
+//
+//            @Override
+//            public void run() {
+//                mTimeSync = new TimeSync();
+//                UDPClient sender = new UDPClient(NetworkUtil.getIPAddress(
+//                        ShowActivity.this), mTimeSync.getDataArray(), TimeSync.DATA_LENGTH);
+//                sender.send();
+//                if (!mReportList.isEmpty()) mReportList.clear();
+////                Message msg = new Message();
+////                msg.what = SEND_RESULT;
+////                msg.obj = sender.send();
+////                mHandler.sendMessage(msg);
+//            }
+//
+//        }.start();
 
 
     }
