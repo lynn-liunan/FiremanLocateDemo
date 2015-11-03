@@ -11,7 +11,7 @@ public class TimeACK implements IPackage {
 
     private byte mReserved = 0;
 
-    private short mModuleID = 0;
+    private int mModuleID = 0;
 
     private int mTimeStamp = 0;
 
@@ -46,7 +46,7 @@ public class TimeACK implements IPackage {
         mReserved = reserved;
     }
 
-    public short getModuleID() {
+    public int getModuleID() {
         return mModuleID;
     }
 

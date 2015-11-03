@@ -12,6 +12,8 @@ import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Created by lynn.liu on 6/16/15.
@@ -19,12 +21,22 @@ import java.util.ArrayList;
 public class ScatterChart extends BaseChart {
 
     private ArrayList<FiremanPosition> mFiremanPositionArrayList;
+    private ArrayList<FiremanPosition> mLastFiremanPositionArrayList;
+    private TreeMap mDistanceMap;
     private int[] mColorsArray = {Color.RED, Color.RED, Color.RED, Color.RED, Color.RED, Color
             .RED, Color.RED, Color.RED, Color.RED, Color.RED};
     private PointStyle[] mPointStyles = {PointStyle.CIRCLE, PointStyle.CIRCLE, PointStyle.CIRCLE,
             PointStyle.CIRCLE, PointStyle.CIRCLE, PointStyle.CIRCLE};
 
+    public ScatterChart(ArrayList<FiremanPosition> firemanPositionArrayList, ArrayList<FiremanPosition> lastFiremanPositionArrayList,TreeMap distanceMap) {
+
+        mFiremanPositionArrayList = firemanPositionArrayList;
+        mLastFiremanPositionArrayList = lastFiremanPositionArrayList;
+        mDistanceMap = distanceMap;
+    }
+
     public ScatterChart(ArrayList<FiremanPosition> firemanPositionArrayList) {
+
         mFiremanPositionArrayList = firemanPositionArrayList;
     }
 
@@ -49,12 +61,6 @@ public class ScatterChart extends BaseChart {
         return null;
     }
 
-    /**
-     * Executes the chart demo.
-     *
-     * @param context the context
-     * @return the built intent
-     */
     @Override
     public Intent execute(Context context) {
         String[] titles = new String[mFiremanPositionArrayList.size()];
@@ -80,7 +86,7 @@ public class ScatterChart extends BaseChart {
             styles[i] = mPointStyles[i % mPointStyles.length];
         }
         XYMultipleSeriesRenderer renderer = buildRenderer(colors, styles);
-        setChartSettings(renderer, "", "X", "Y", -2, 8, -2, 8, Color.WHITE,
+        setChartSettings(renderer, "", "X", "Y", -200, 200, -200, 800, Color.WHITE,
                 Color.WHITE);
         renderer.setPointSize(15);
         renderer.setLabelsTextSize(25);
@@ -92,6 +98,6 @@ public class ScatterChart extends BaseChart {
         for (int i = 0; i < renderer.getSeriesRendererCount(); i++) {
             ((XYSeriesRenderer) renderer.getSeriesRendererAt(i)).setFillPoints(true);
         }
-        return ChartFactory.getScatterChartIntent(context, buildDataset(titles, valuesX, valuesY), renderer);
+        return ChartFactory.getScatterChartIntent(context, buildDataset(titles, valuesX, valuesY), renderer, mLastFiremanPositionArrayList,mDistanceMap);
     }
 }

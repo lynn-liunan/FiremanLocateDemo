@@ -15,7 +15,9 @@
  */
 package org.achartengine.chart;
 
+import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
@@ -26,6 +28,7 @@ import android.graphics.PathEffect;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.util.Log;
 
 import org.achartengine.model.Point;
 import org.achartengine.model.SeriesSelection;
@@ -52,6 +55,8 @@ import java.util.SortedMap;
  * The XY chart rendering class.
  */
 public abstract class XYChart extends AbstractChart {
+    private static final String TAG = "XYChart";
+    protected Context mCtx;
     /**
      * The multiple series dataset.
      */
@@ -96,7 +101,8 @@ public abstract class XYChart extends AbstractChart {
      * @param dataset  the multiple series dataset
      * @param renderer the multiple series renderer
      */
-    public XYChart(XYMultipleSeriesDataset dataset, XYMultipleSeriesRenderer renderer) {
+    public XYChart(XYMultipleSeriesDataset dataset, XYMultipleSeriesRenderer renderer, Context ctx) {
+        this.mCtx = ctx;
         mDataset = dataset;
         mRenderer = renderer;
     }
@@ -106,6 +112,14 @@ public abstract class XYChart extends AbstractChart {
                                       XYMultipleSeriesRenderer renderer) {
         mDataset = dataset;
         mRenderer = renderer;
+    }
+
+    /**
+     * 根据手机的分辨率从 dp 的单位 转成为 px(像素)
+     */
+    public static int dip2px(Context context, float dpValue) {
+        final float scale = context.getResources().getDisplayMetrics().density;
+        return (int) (dpValue * scale + 0.5f);
     }
 
     /**
@@ -127,9 +141,18 @@ public abstract class XYChart extends AbstractChart {
         int right = x + width - margins[3];
         int sLength = mDataset.getSeriesCount();
         String[] titles = new String[sLength];
-        for (int i = 0; i < sLength; i++) {
-            titles[i] = mDataset.getSeriesAt(i).getTitle();
-        }
+//        for (int i = 0; i < sLength; i++) {
+//            titles[i] = mDataset.getSeriesAt(i).getTitle();
+//            Log.i(TAG, "titlesi: " + titles[i]);
+//            //test
+//            int innerCircle = dip2px(mCtx, 30); //设置内圆半径
+//            Paint paint1 = new Paint();
+//            paint1.setColor(Color.BLUE);
+//            paint1.setStrokeWidth(2);
+//            paint1.setAntiAlias(true); //消除锯齿
+//            paint1.setStyle(Paint.Style.STROKE); //绘制空心圆
+//            //end
+//        }
         if (mRenderer.isFitLegend() && mRenderer.isShowLegend()) {
             legendSize = drawLegend(canvas, mRenderer, titles, left, right, y, width, height, legendSize,
                     paint, true);
@@ -175,9 +198,11 @@ public abstract class XYChart extends AbstractChart {
             maxScaleNumber = Math.max(maxScaleNumber, mDataset.getSeriesAt(i).getScaleNumber());
         }
         maxScaleNumber++;
+
         if (maxScaleNumber < 0) {
             return;
         }
+
         double[] minX = new double[maxScaleNumber];
         double[] maxX = new double[maxScaleNumber];
         double[] minY = new double[maxScaleNumber];
@@ -249,8 +274,10 @@ public abstract class XYChart extends AbstractChart {
         // 1) Avoid a large contiguous memory allocation
         // 2) We don't need random seeking, only sequential reading/writing, so
         // linked list makes sense
+
         clickableAreas = new HashMap<Integer, List<ClickableArea>>();
         for (int i = 0; i < sLength; i++) {
+
             XYSeries series = mDataset.getSeriesAt(i);
             int scale = series.getScaleNumber();
             if (series.getItemCount() == 0) {
@@ -258,6 +285,7 @@ public abstract class XYChart extends AbstractChart {
             }
 
             hasValues = true;
+
             XYSeriesRenderer seriesRenderer = (XYSeriesRenderer) mRenderer.getSeriesRendererAt(i);
 
             // int originalValuesLength = series.getItemCount();
@@ -270,7 +298,8 @@ public abstract class XYChart extends AbstractChart {
             LinkedList<ClickableArea> clickableArea = new LinkedList<ClickableArea>();
 
             clickableAreas.put(i, clickableArea);
-
+            String mTitle = series.getTitle();
+            boolean isRadar = "Cmd".equals(mTitle);
             synchronized (series) {
                 SortedMap<Double, Double> range = series.getRange(minX[scale], maxX[scale],
                         seriesRenderer.isDisplayBoundingPoints());
@@ -279,6 +308,9 @@ public abstract class XYChart extends AbstractChart {
                 for (Entry<Double, Double> value : range.entrySet()) {
                     double xValue = value.getKey();
                     double yValue = value.getValue();
+                    Log.i(TAG, "xValue:" + xValue);
+                    Log.i(TAG, "yValue:" + yValue);
+
                     if (startIndex < 0 && (!isNullValue(yValue) || isRenderNullValues())) {
                         startIndex = series.getIndexForKey(xValue);
                     }
@@ -299,7 +331,7 @@ public abstract class XYChart extends AbstractChart {
                     } else {
                         if (points.size() > 0) {
                             drawSeries(series, canvas, paint, points, seriesRenderer, yAxisValue, i, or,
-                                    startIndex);
+                                    startIndex, isRadar);
                             ClickableArea[] clickableAreasForSubSeries = clickableAreasForPoints(points, values,
                                     yAxisValue, i, startIndex);
                             clickableArea.addAll(Arrays.asList(clickableAreasForSubSeries));
@@ -331,7 +363,7 @@ public abstract class XYChart extends AbstractChart {
                 }
 
                 if (points.size() > 0) {
-                    drawSeries(series, canvas, paint, points, seriesRenderer, yAxisValue, i, or, startIndex);
+                    drawSeries(series, canvas, paint, points, seriesRenderer, yAxisValue, i, or, startIndex, isRadar);
                     ClickableArea[] clickableAreasForSubSeries = clickableAreasForPoints(points, values,
                             yAxisValue, i, startIndex);
                     clickableArea.addAll(Arrays.asList(clickableAreasForSubSeries));
@@ -537,7 +569,7 @@ public abstract class XYChart extends AbstractChart {
      */
     protected void drawSeries(XYSeries series, Canvas canvas, Paint paint, List<Float> pointsList,
                               XYSeriesRenderer seriesRenderer, float yAxisValue, int seriesIndex, Orientation or,
-                              int startIndex) {
+                              int startIndex, boolean isRadar) {
         BasicStroke stroke = seriesRenderer.getStroke();
         Cap cap = paint.getStrokeCap();
         Join join = paint.getStrokeJoin();
@@ -553,7 +585,7 @@ public abstract class XYChart extends AbstractChart {
                     effect, paint);
         }
         // float[] points = MathHelper.getFloats(pointsList);
-        drawSeries(canvas, paint, pointsList, seriesRenderer, yAxisValue, seriesIndex, startIndex);
+        drawSeries(canvas, paint, pointsList, seriesRenderer, yAxisValue, seriesIndex, startIndex, isRadar);
         drawPoints(canvas, paint, pointsList, seriesRenderer, yAxisValue, seriesIndex, startIndex);
         paint.setTextSize(seriesRenderer.getChartValuesTextSize());
         if (or == Orientation.HORIZONTAL) {
@@ -983,6 +1015,9 @@ public abstract class XYChart extends AbstractChart {
      */
     public abstract void drawSeries(Canvas canvas, Paint paint, List<Float> points,
                                     XYSeriesRenderer seriesRenderer, float yAxisValue, int seriesIndex, int startIndex);
+
+    public abstract void drawSeries(Canvas canvas, Paint paint, List<Float> points,
+                                    XYSeriesRenderer seriesRenderer, float yAxisValue, int seriesIndex, int startIndex, boolean isRadar);
 
     /**
      * Returns the clickable areas for all passed points

@@ -2,14 +2,16 @@ package com.honeywell.firemanlocate.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
+
 /**
  * Created by lynn.liu on 6/18/15.
  */
-public class FiremanPosition implements Cloneable {
+public class FiremanPosition implements Cloneable,Serializable {
 
     protected double mX;
     protected double mY;
-    protected int mIndex;
+    protected String mIndex;
     protected double mZ;
 
     public FiremanPosition() {
@@ -20,7 +22,7 @@ public class FiremanPosition implements Cloneable {
         mY = y;
     }
 
-    public FiremanPosition(double mX, double mY, int mIndex) {
+    public FiremanPosition(double mX, double mY, String mIndex) {
         this.mIndex = mIndex;
         this.mY = mY;
         this.mX = mX;
@@ -29,6 +31,12 @@ public class FiremanPosition implements Cloneable {
         this.mZ = mZ;
         this.mY = mY;
         this.mX = mX;
+    }
+    public FiremanPosition(double mX, double mY, double mZ,String mIndex) {
+        this.mZ = mZ;
+        this.mY = mY;
+        this.mX = mX;
+        this.mIndex = mIndex;
     }
     @Override
     public FiremanPosition clone() {
@@ -59,11 +67,11 @@ public class FiremanPosition implements Cloneable {
         return mY;
     }
 
-    public int getmIndex() {
+    public String getmIndex() {
         return mIndex;
     }
 
-    public void setmIndex(int mIndex) {
+    public void setmIndex(String mIndex) {
         this.mIndex = mIndex;
     }
 

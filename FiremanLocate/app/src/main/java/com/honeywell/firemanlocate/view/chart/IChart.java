@@ -3,6 +3,11 @@ package com.honeywell.firemanlocate.view.chart;
 import android.content.Context;
 import android.content.Intent;
 
+import com.honeywell.firemanlocate.model.FiremanPosition;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by lynn.liu on 6/16/15.
  */
@@ -37,4 +42,6 @@ public interface IChart {
      * @return the built intent
      */
     Intent execute(Context context);
+
+//    Intent execute(Context context, ArrayList<FiremanPosition> list);
 }
