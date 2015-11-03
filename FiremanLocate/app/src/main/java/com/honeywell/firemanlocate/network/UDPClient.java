@@ -43,6 +43,7 @@ public class UDPClient {
         InetAddress inetAddress = null;
         try {
             inetAddress = InetAddress.getByName(mAddress);
+            stringBuilder.append("address: " + mAddress).append("\n");
             stringBuilder.append("server found, connecting").append("\n");
         } catch (UnknownHostException e) {
             stringBuilder.append("server not found").append("\n");
